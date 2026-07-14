@@ -1,0 +1,21 @@
+version: "3.8"
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: opensource-globalizer:latest
+    container_name: globalizer
+    ports:
+      - "8080:8080"
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - GLOBALIZER_DB_PATH=/data/globalizer.db
+    volumes:
+      - globalizer_data:/data
+    restart: unless-stopped
+
+volumes:
+  globalizer_data:
+    driver: local
