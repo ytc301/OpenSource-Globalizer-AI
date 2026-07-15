@@ -19,6 +19,7 @@ var (
 	model       string
 	dryRun      bool
 	sourceLang  string
+	useMock     bool
 
 	translateCmd = &cobra.Command{
 		Use:   "translate <file>",
@@ -40,6 +41,7 @@ func init() {
 	translateCmd.Flags().StringVarP(&model, "model", "m", "gpt-4o", "OpenAI 模型名称")
 	translateCmd.Flags().BoolVar(&dryRun, "dry-run", false, "预览模式，不写入文件")
 	translateCmd.Flags().StringVarP(&sourceLang, "source", "s", "", "源语言 (留空自动检测)")
+	translateCmd.Flags().BoolVar(&useMock, "mock", false, "使用 Mock Provider (无需 API Key，仅供测试)")
 
 	rootCmd.AddCommand(translateCmd)
 }
@@ -65,20 +67,24 @@ func runTranslate(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("读取文件失败: %w", err)
 	}
 
-	// 获取 API Key
-	apiKey := cfg.EffectiveAPIKey()
-	if apiKey == "" {
-		apiKey = os.Getenv("OPENAI_API_KEY")
-	}
-	if apiKey == "" {
-		return fmt.Errorf("请设置 OPENAI_API_KEY 环境变量或在配置文件中指定")
-	}
-
 	// 创建 AI Provider
-	provider := ai.NewOpenAI(ai.OpenAIConfig{
-		APIKey:  apiKey,
-		BaseURL: cfg.OpenAI.BaseURL,
-	})
+	var provider ai.Provider
+	if useMock {
+		provider = ai.NewMockProvider()
+		fmt.Println("🧪 使用 Mock Provider (测试模式)")
+	} else {
+		apiKey := cfg.EffectiveAPIKey()
+		if apiKey == "" {
+			apiKey = os.Getenv("OPENAI_API_KEY")
+		}
+		if apiKey == "" {
+			return fmt.Errorf("请设置 OPENAI_API_KEY 环境变量或在配置文件中指定")
+		}
+		provider = ai.NewOpenAI(ai.OpenAIConfig{
+			APIKey:  apiKey,
+			BaseURL: cfg.OpenAI.BaseURL,
+		})
+	}
 
 	// 创建 Store (可选，缓存翻译)
 	var st *store.Store

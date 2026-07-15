@@ -75,15 +75,15 @@ func (s *Service) TranslateFile(ctx context.Context, content string, langs []str
 		// 拆分翻译结果
 		translatedParts := splitTranslation(result.Translated, len(translatable))
 
-		// 重组 Markdown
+		// 重组 Markdown — translationMap 的 key 与 Reassemble 内部计数器对齐
 		translationMap := make(map[int]string)
-		transIdx := 0
-		for i, seg := range segments {
+		reIdx := 0
+		for _, seg := range segments {
 			if s.parser.CanTranslate(seg) {
-				if transIdx < len(translatedParts) {
-					translationMap[i] = translatedParts[transIdx]
+				if reIdx < len(translatedParts) {
+					translationMap[reIdx] = translatedParts[reIdx]
 				}
-				transIdx++
+				reIdx++
 			}
 		}
 
