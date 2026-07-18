@@ -33,9 +33,9 @@
 | 7 | Gin HTTP Handler (POST /api/v1/translate) | P0 | ✅ |
 | 8 | viper 配置管理 (env + YAML merge) | P0 | ✅ |
 | 9 | zap 结构化日志 | P0 | ✅ |
-| 10 | translate 命令串联 → 端到端跑通 | P0 | ⬜ |
-| 11 | 单元测试 (coverage > 80%) | P0 | ⬜ |
-| 12 | 添加 example 项目 + 截图 | P1 | ⬜ |
+| 10 | translate 命令串联 → 端到端跑通 (Mock) | P0 | ✅ |
+| 11 | 单元测试 27 个 (core 包 68-84%) | P0 | 🚧 |
+| 12 | 添加 example 项目 | P1 | ✅ |
 
 ### v0.1.0 验收
 
@@ -136,5 +136,5 @@ Week 1-2  → v0.1.0 发布  ← 当前
 Week 3-4  → v0.2.0 发布 (GitHub Action，首个真实用户)
 Week 5-8  → v0.3.0 发布 (Issue Assistant，社区开始使用)
 Week 9-12 → v0.4.0 发布 (Release Notes，功能完整)
-Week 13-16 → v1.0.0 RC (GitHub App，提交 Codex for OSS 申请)
+Week 13-16 → v1.0.0 RC (GitHub App)
 ```
