@@ -48,57 +48,40 @@ But most maintainers cannot manually translate every README, every Issue, every 
 
 ## Quick Start
 
-### 1. Install
+> 📖 完整安装指南见 **[INSTALL.md](INSTALL.md)** — 从零到首次翻译，5 分钟上手。
+
+### 一行命令安装
 
 ```bash
+# 下载预编译二进制（macOS/Linux/Windows）或：
 go install github.com/ytc301/opensource-globalizer/cmd/globalizer@latest
 ```
 
-### 2. Translate a README
+### 一行命令翻译
 
 ```bash
 export OPENAI_API_KEY="sk-..."
-
 globalizer translate README.md --lang zh-CN,ja,ko,es
 ```
 
-Output:
-
 ```
-docs/
-├── README.zh-CN.md
-├── README.ja.md
-├── README.ko.md
-└── README.es.md
+📖 源文件: README.md
+🌍 目标语言: zh-CN, ja, ko, es
+🤖 模型: gpt-4o
+  ✅ docs/README.zh-CN.md
+  ✅ docs/README.ja.md
+  ✅ docs/README.ko.md
+  ✅ docs/README.es.md
+✨ 翻译完成！共 4 个语言版本
 ```
 
-### 3. Start HTTP API Server
+### 启动 HTTP API
 
 ```bash
 globalizer serve
-# → http://localhost:8080/api/v1/translate
-```
-
-### 4. Add to GitHub Actions
-
-```yaml
-# .github/workflows/i18n.yml
-name: AI Translation
-
-on:
-  push:
-    paths:
-      - README.md
-
-jobs:
-  translate:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: opensource-globalizer/action@v1
-        with:
-          openai-key: ${{ secrets.OPENAI_API_KEY }}
-          languages: zh-CN,ja,ko,es
+# → curl -X POST http://localhost:8080/api/v1/translate \
+#     -H 'Content-Type: application/json' \
+#     -d '{"content":"# Hello","target_langs":["zh-CN"]}'
 ```
 
 ---
