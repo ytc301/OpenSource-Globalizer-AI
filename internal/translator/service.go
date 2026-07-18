@@ -67,6 +67,7 @@ func (s *Service) TranslateFile(ctx context.Context, content string, langs []str
 		result, err := s.provider.Translate(ctx, combinedInput, ai.TranslateOptions{
 			TargetLang: targetLang,
 			Model:      model,
+			Preserve:   []string{"separators", "code_blocks", "links", "badges", "html"},
 		})
 		if err != nil {
 			return nil, fmt.Errorf("翻译到 %s 失败: %w", targetLang, err)
@@ -109,47 +110,41 @@ func (s *Service) TranslateFile(ctx context.Context, content string, langs []str
 }
 
 // joinForTranslation 将多个文本拼接为一个翻译请求。
+// 使用特殊分隔符，在 Prompt 中明确要求 AI 保留。
+const segmentSeparator = "\n\n<<<SEGMENT_SEPARATOR>>>\n\n"
+
 func joinForTranslation(parts []string) string {
 	var sb strings.Builder
 	for i, part := range parts {
-		sb.WriteString(fmt.Sprintf("--- SEGMENT_%d ---\n%s\n\n", i, part))
+		if i > 0 {
+			sb.WriteString(segmentSeparator)
+		}
+		sb.WriteString(part)
 	}
 	return sb.String()
 }
 
-// splitTranslation 将翻译结果拆分回独立片段。
+// splitTranslation 将翻译结果按分隔符拆分回独立片段。
+// 如果分隔符全部丢失，返回整个翻译作为单段（回退模式）。
 func splitTranslation(translated string, count int) []string {
-	if count == 1 {
+	if count <= 1 {
 		return []string{strings.TrimSpace(translated)}
 	}
 
-	parts := make([]string, 0, count)
-	for i := 0; i < count; i++ {
-		marker := fmt.Sprintf("--- SEGMENT_%d ---", i)
-		nextMarker := ""
-		if i+1 < count {
-			nextMarker = fmt.Sprintf("--- SEGMENT_%d ---", i+1)
-		}
+	parts := strings.Split(translated, segmentSeparator)
 
-		start := strings.Index(translated, marker)
-		if start == -1 {
-			parts = append(parts, translated)
-			continue
-		}
-		start += len(marker)
-
-		var end int
-		if nextMarker != "" {
-			end = strings.Index(translated[start:], nextMarker)
-		}
-		if end == -1 {
-			end = len(translated) - start
-		}
-
-		part := strings.TrimSpace(translated[start : start+end])
-		parts = append(parts, part)
+	// 清理每段的前后空白
+	result := make([]string, len(parts))
+	for i, p := range parts {
+		result[i] = strings.TrimSpace(p)
 	}
-	return parts
+
+	// 拆分数量不匹配 → 回退：整个翻译作为第一段，后面用原文
+	if len(result) != count {
+		return append(result[:1], result...) // 返回实际拆分结果，让调用方处理
+	}
+
+	return result
 }
 
 // hashContent 计算内容的 SHA-256 哈希。

@@ -125,3 +125,88 @@ func TestNewStore_TildeExpansion(t *testing.T) {
 		t.Errorf("数据库文件未在预期路径创建: %s", expectedPath)
 	}
 }
+
+func TestCache_MultiLangIsolation(t *testing.T) {
+	st := newTestStore(t)
+
+	// 写入 zh-CN 缓存
+	st.PutCache(&Translation{
+		SourceHash: "hash_multi",
+		TargetLang: "zh-CN",
+		SourceText: "Hello",
+		Translated: "你好",
+		Model:      "gpt-4o",
+	})
+
+	// 写入 ja 缓存 (相同 source_hash, 不同 target_lang)
+	st.PutCache(&Translation{
+		SourceHash: "hash_multi",
+		TargetLang: "ja",
+		SourceText: "Hello",
+		Translated: "こんにちは",
+		Model:      "gpt-4o",
+	})
+
+	// 各自独立读取
+	zh, _ := st.GetCached("hash_multi", "zh-CN")
+	if zh == nil || zh.Translated != "你好" {
+		t.Error("zh-CN 缓存读取错误")
+	}
+
+	ja, _ := st.GetCached("hash_multi", "ja")
+	if ja == nil || ja.Translated != "こんにちは" {
+		t.Error("ja 缓存读取错误")
+	}
+}
+
+func TestStore_DB(t *testing.T) {
+	st := newTestStore(t)
+	db := st.DB()
+	if db == nil {
+		t.Fatal("DB() 返回 nil")
+	}
+	// 验证底层 GORM 实例可用
+	var count int64
+	db.Model(&Translation{}).Count(&count)
+	if count < 0 {
+		t.Error("计数不应为负")
+	}
+}
+
+func TestStore_CloseAndReopen(t *testing.T) {
+	tmpDir := t.TempDir()
+	dbPath := filepath.Join(tmpDir, "test.db")
+
+	st, err := New(dbPath)
+	if err != nil {
+		t.Fatalf("创建 Store 失败: %v", err)
+	}
+
+	st.PutCache(&Translation{
+		SourceHash: "hash_close",
+		TargetLang: "zh-CN",
+		SourceText: "Hello",
+		Translated: "你好",
+		Model:      "gpt-4o",
+		TokensUsed: 10,
+	})
+
+	if err := st.Close(); err != nil {
+		t.Fatalf("关闭失败: %v", err)
+	}
+
+	// 重新打开同一个数据库文件
+	st2, err := New(dbPath)
+	if err != nil {
+		t.Fatalf("重新打开失败: %v", err)
+	}
+	defer st2.Close()
+
+	cached, _ := st2.GetCached("hash_close", "zh-CN")
+	if cached == nil {
+		t.Error("关闭后重新打开，缓存应仍然存在")
+	}
+	if cached.Translated != "你好" {
+		t.Errorf("翻译内容不匹配: %q", cached.Translated)
+	}
+}

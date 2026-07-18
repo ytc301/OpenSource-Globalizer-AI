@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"math"
 	"net/http"
 	"time"
 )
@@ -13,9 +14,13 @@ import (
 // OpenAIConfig OpenAI Provider 配置。
 type OpenAIConfig struct {
 	APIKey      string
-	BaseURL     string // 默认: https://api.openai.com/v1
-	HTTPTimeout time.Duration
+	BaseURL     string        // 默认: https://api.openai.com/v1
+	HTTPTimeout time.Duration // 默认: 60s
+	MaxRetries  int           // 默认: 3
 }
+
+// DefaultMaxRetries 默认重试次数。
+const DefaultMaxRetries = 3
 
 // OpenAIProvider 实现 Provider 接口，使用 OpenAI API。
 type OpenAIProvider struct {
@@ -30,6 +35,9 @@ func NewOpenAI(cfg OpenAIConfig) *OpenAIProvider {
 	}
 	if cfg.HTTPTimeout == 0 {
 		cfg.HTTPTimeout = 60 * time.Second
+	}
+	if cfg.MaxRetries <= 0 {
+		cfg.MaxRetries = DefaultMaxRetries
 	}
 	return &OpenAIProvider{
 		config: cfg,
@@ -75,15 +83,14 @@ func (p *OpenAIProvider) Translate(ctx context.Context, input string, opts Trans
 	}
 
 	return &TranslateResult{
-		Translated: resp,
+		Translated: resp.Content,
 		SourceLang: opts.SourceLang,
-		TokensUsed: 0, // TODO: 从 API 响应中解析
+		TokensUsed: resp.TokensUsed,
 	}, nil
 }
 
 // DetectLanguage 实现 Provider 接口的语言检测方法。
 func (p *OpenAIProvider) DetectLanguage(ctx context.Context, text string) (string, error) {
-	// 取前 500 字符用于检测，节省 Token
 	sample := text
 	if len(sample) > 500 {
 		sample = sample[:500]
@@ -101,7 +108,7 @@ func (p *OpenAIProvider) DetectLanguage(ctx context.Context, text string) (strin
 	if err != nil {
 		return "", fmt.Errorf("detect language: %w", err)
 	}
-	return resp, nil
+	return resp.Content, nil
 }
 
 // ClassifyIssue 实现 Provider 接口的 Issue 分类方法。
@@ -120,59 +127,98 @@ func (p *OpenAIProvider) ClassifyIssue(ctx context.Context, title, body string) 
 	}
 
 	var result IssueClassifyResult
-	if err := json.Unmarshal([]byte(resp), &result); err != nil {
+	if err := json.Unmarshal([]byte(resp.Content), &result); err != nil {
 		return nil, fmt.Errorf("parse classify result: %w", err)
 	}
 	return &result, nil
 }
 
-// chatComplete 发送 Chat Completion 请求并返回响应文本。
-func (p *OpenAIProvider) chatComplete(ctx context.Context, req chatCompletionRequest) (string, error) {
+// chatResponse OpenAI API 返回的 Chat Completion 响应。
+type chatResponse struct {
+	Content    string
+	TokensUsed int
+}
+
+// chatComplete 发送请求，带指数退避重试。
+func (p *OpenAIProvider) chatComplete(ctx context.Context, req chatCompletionRequest) (*chatResponse, error) {
+	var lastErr error
+	for attempt := 0; attempt <= p.config.MaxRetries; attempt++ {
+		resp, retryable, err := p.doChatComplete(ctx, req)
+		if err == nil {
+			return resp, nil
+		}
+		lastErr = err
+		if !retryable || attempt >= p.config.MaxRetries {
+			break
+		}
+		// 指数退避: 1s, 2s, 4s
+		delay := time.Duration(math.Pow(2, float64(attempt))) * time.Second
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		case <-time.After(delay):
+		}
+	}
+	return nil, lastErr
+}
+
+// doChatComplete 执行单次 API 调用, 返回结果和是否可重试。
+func (p *OpenAIProvider) doChatComplete(ctx context.Context, req chatCompletionRequest) (*chatResponse, bool, error) {
 	body, err := json.Marshal(req)
 	if err != nil {
-		return "", fmt.Errorf("marshal request: %w", err)
+		return nil, false, fmt.Errorf("marshal request: %w", err)
 	}
 
 	httpReq, err := http.NewRequestWithContext(ctx, "POST",
 		p.config.BaseURL+"/chat/completions", bytes.NewReader(body))
 	if err != nil {
-		return "", fmt.Errorf("create request: %w", err)
+		return nil, false, fmt.Errorf("create request: %w", err)
 	}
 	httpReq.Header.Set("Content-Type", "application/json")
 	httpReq.Header.Set("Authorization", "Bearer "+p.config.APIKey)
 
 	httpResp, err := p.httpClient.Do(httpReq)
 	if err != nil {
-		return "", fmt.Errorf("http request: %w", err)
+		return nil, true, fmt.Errorf("http request: %w", err) // 网络错误可重试
 	}
 	defer httpResp.Body.Close()
 
 	respBody, err := io.ReadAll(httpResp.Body)
 	if err != nil {
-		return "", fmt.Errorf("read response: %w", err)
+		return nil, true, fmt.Errorf("read response: %w", err)
 	}
 
+	// 429 (rate limit) 和 5xx (server error) → 重试
+	// 401/403 (auth) 和 400 (bad request) → 不重试
+	if httpResp.StatusCode >= 500 || httpResp.StatusCode == 429 {
+		return nil, true, fmt.Errorf("api error (status %d, retryable): %s", httpResp.StatusCode, string(respBody))
+	}
 	if httpResp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("api error (status %d): %s", httpResp.StatusCode, string(respBody))
+		return nil, false, fmt.Errorf("api error (status %d): %s", httpResp.StatusCode, string(respBody))
 	}
 
-	// 解析响应
 	var result struct {
 		Choices []struct {
 			Message struct {
 				Content string `json:"content"`
 			} `json:"message"`
 		} `json:"choices"`
+		Usage struct {
+			TotalTokens int `json:"total_tokens"`
+		} `json:"usage"`
 	}
 	if err := json.Unmarshal(respBody, &result); err != nil {
-		return "", fmt.Errorf("parse response: %w", err)
+		return nil, false, fmt.Errorf("parse response: %w", err)
 	}
 
 	if len(result.Choices) == 0 {
-		return "", fmt.Errorf("no choices in response")
+		return nil, false, fmt.Errorf("no choices in response")
 	}
 
-	return result.Choices[0].Message.Content, nil
+	return &chatResponse{
+		Content:    result.Choices[0].Message.Content,
+		TokensUsed: result.Usage.TotalTokens,
+	}, false, nil
 }
 
 // buildTranslateSystemPrompt 构建翻译 System Prompt。
@@ -188,8 +234,13 @@ func buildTranslateSystemPrompt(opts TranslateOptions) string {
 		return false
 	}
 
+	// 分隔符保留规则 (必须最先处理)
+	if hasPreserve("separators") {
+		prompt += "\n- CRITICAL: Preserve the <<<SEGMENT_SEPARATOR>>> markers exactly as they appear. Do NOT translate or modify them."
+		prompt += "\n- Translate each segment between separators independently."
+	}
 	if hasPreserve("code_blocks") {
-		prompt += "\n- NEVER translate content inside code blocks (```)."
+		prompt += "\n- NEVER translate content inside code blocks (```). Keep the code fences intact."
 	}
 	if hasPreserve("links") {
 		prompt += "\n- Preserve all URLs and link syntax intact."
@@ -201,7 +252,7 @@ func buildTranslateSystemPrompt(opts TranslateOptions) string {
 		prompt += "\n- Do not translate HTML tag attributes."
 	}
 
-	prompt += "\n\nReturn ONLY the translated content. No explanations."
+	prompt += "\n\nReturn ONLY the translated content. No explanations or notes."
 	return prompt
 }
 

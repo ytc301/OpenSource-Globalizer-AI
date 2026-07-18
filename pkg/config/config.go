@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/spf13/viper"
 )
@@ -81,7 +82,13 @@ func Load(cfgFile string) (*Config, error) {
 	v.AutomaticEnv()
 
 	if err := v.ReadInConfig(); err != nil {
-		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
+		// 配置文件不存在且非必要 → 使用默认值
+		// 如果是 viper.ConfigFileNotFoundError 或 os.PathError → 忽略
+		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
+			// 配置文件不存在，使用默认值
+		} else if _, ok := err.(*os.PathError); ok {
+			// viper 用 SetConfigFile 时返回 PathError
+		} else {
 			return nil, fmt.Errorf("读取配置文件: %w", err)
 		}
 	}
