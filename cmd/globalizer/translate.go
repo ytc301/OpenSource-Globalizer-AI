@@ -20,6 +20,8 @@ var (
 	dryRun      bool
 	sourceLang  string
 	useMock     bool
+	baseURL     string
+	apiKey      string
 
 	translateCmd = &cobra.Command{
 		Use:   "translate <file>",
@@ -42,6 +44,8 @@ func init() {
 	translateCmd.Flags().BoolVar(&dryRun, "dry-run", false, "预览模式，不写入文件")
 	translateCmd.Flags().StringVarP(&sourceLang, "source", "s", "", "源语言 (留空自动检测)")
 	translateCmd.Flags().BoolVar(&useMock, "mock", false, "使用 Mock Provider (无需 API Key，仅供测试)")
+	translateCmd.Flags().StringVar(&baseURL, "base-url", "", "API Base URL (默认: https://api.openai.com/v1)")
+	translateCmd.Flags().StringVar(&apiKey, "api-key", "", "API Key (优先级低于环境变量 OPENAI_API_KEY)")
 
 	rootCmd.AddCommand(translateCmd)
 }
@@ -73,16 +77,27 @@ func runTranslate(cmd *cobra.Command, args []string) error {
 		provider = ai.NewMockProvider()
 		fmt.Println("🧪 使用 Mock Provider (测试模式)")
 	} else {
-		apiKey := cfg.EffectiveAPIKey()
-		if apiKey == "" {
-			apiKey = os.Getenv("OPENAI_API_KEY")
+		// API Key 优先级: 环境变量 > --api-key > 配置文件
+		resolvedKey := os.Getenv("OPENAI_API_KEY")
+		if resolvedKey == "" {
+			resolvedKey = apiKey
 		}
-		if apiKey == "" {
-			return fmt.Errorf("请设置 OPENAI_API_KEY 环境变量或在配置文件中指定")
+		if resolvedKey == "" {
+			resolvedKey = cfg.EffectiveAPIKey()
 		}
+		if resolvedKey == "" {
+			return fmt.Errorf("请设置 OPENAI_API_KEY 环境变量或使用 --api-key 参数")
+		}
+
+		// Base URL 优先级: --base-url > 配置文件默认值
+		resolvedURL := baseURL
+		if resolvedURL == "" {
+			resolvedURL = cfg.OpenAI.BaseURL
+		}
+
 		provider = ai.NewOpenAI(ai.OpenAIConfig{
-			APIKey:  apiKey,
-			BaseURL: cfg.OpenAI.BaseURL,
+			APIKey:  resolvedKey,
+			BaseURL: resolvedURL,
 		})
 	}
 
