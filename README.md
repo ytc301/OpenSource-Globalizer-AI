@@ -60,8 +60,16 @@ go install github.com/ytc301/opensource-globalizer/cmd/globalizer@latest
 ### 一行命令翻译
 
 ```bash
+# 环境变量方式
 export OPENAI_API_KEY="sk-..."
 globalizer translate README.md --lang zh-CN,ja,ko,es
+
+# 命令行参数方式
+globalizer translate README.md --lang zh-CN,ja,ko,es --api-key "sk-..."
+
+# 指定 API 地址和模型
+globalizer translate README.md --lang zh-CN -m gpt-5-mini \
+  --base-url https://api.openai.com/v1 --api-key "sk-..."
 ```
 
 ```
