@@ -218,6 +218,7 @@ jobs:
 | `globalizer translate <file> --lang zh-CN` | 翻译文件 |
 | `globalizer translate <file> --lang zh-CN --dry-run` | 预览模式 |
 | `globalizer translate <file> --lang zh-CN --mock` | Mock 测试模式 |
+| `globalizer translate <file> --lang zh-CN --api-key "sk-xxx"` | 命令行传入 Key |
 | `globalizer serve` | 启动 HTTP API |
 | `globalizer help` | 查看帮助 |
 
@@ -239,6 +240,31 @@ Flags:
 
 Global Flags:
       --config     配置文件路径              (默认: .globalizer.yaml)
+```
+
+### 使用示例
+
+```bash
+# 基础用法 — 翻译为中文
+globalizer translate README.md --lang zh-CN
+
+# 命令行直接传 Key
+globalizer translate README.md --lang zh-CN --api-key "sk-xxx"
+
+# 指定模型
+globalizer translate README.md --lang zh-CN -m gpt-5-mini
+
+# 指定 API 地址和模型
+globalizer translate README.md --lang zh-CN,ja \
+  --base-url https://api.openai.com/v1 \
+  --api-key "sk-xxx" \
+  -m gpt-5-mini
+
+# 预览模式（不写文件）
+globalizer translate README.md --lang zh-CN --dry-run
+
+# Mock 测试（验证全链路，无需 API Key）
+globalizer translate README.md --lang zh-CN --mock
 ```
 
 ---
