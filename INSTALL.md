@@ -10,7 +10,26 @@
 
 ### 方式一：下载预编译二进制（推荐，无需 Go 环境）
 
-从 [GitHub Releases](https://github.com/ytc301/OpenSource-Globalizer-AI/releases) 下载对应平台：
+从 [GitHub Releases](https://github.com/ytc301/OpenSource-Globalizer-AI/releases) 下载对应平台的二进制文件。
+
+**下载并安装（示例 macOS Apple Silicon）：**
+
+```bash
+# 1. 下载
+curl -L -o globalizer https://github.com/ytc301/OpenSource-Globalizer-AI/releases/latest/download/globalizer-darwin-arm64
+
+# 2. 加执行权限
+chmod +x globalizer
+
+# 3. 移动到 PATH 目录（可选，方便全局使用）
+sudo mv globalizer /usr/local/bin/
+
+# 4. 验证
+globalizer version
+# → globalizer v0.1.0
+```
+
+**全平台二进制：**
 
 | 平台 | 文件名 |
 |------|--------|
@@ -54,23 +73,38 @@ make build
 3. 点击「Create new secret key」创建 Key
 4. 复制 Key（格式：`sk-proj-...` 或 `sk-...`）
 
-> ⚠️ API Key 需要对应项目有 GPT-4o 模型访问权限并有足够配额。
+> ⚠️ API Key 需要对应项目有模型访问权限并有足够配额。
 
 ---
 
 ## 第三步：翻译你的第一个 README
 
-### 翻译当前目录的 README.md
+### 传入 API Key（三种方式，优先级从高到低）
 
 ```bash
-# 设置 API Key（仅当前终端有效，关闭后消失）
-export OPENAI_API_KEY="sk-你的密钥"
+# 方式 1：命令行参数 --api-key（最直接）
+globalizer translate README.md --lang zh-CN --api-key "sk-你的密钥"
 
+# 方式 2：环境变量（当前终端有效，关闭后消失）
+export OPENAI_API_KEY="sk-你的密钥"
+globalizer translate README.md --lang zh-CN
+
+# 方式 3：配置文件 .globalizer.yaml
+# openai:
+#   api_key: sk-你的密钥
+```
+
+### 翻译命令
+
+```bash
 # 翻译为中文
 globalizer translate README.md --lang zh-CN
 
 # 翻译为多语言
 globalizer translate README.md --lang zh-CN,ja,ko,es
+
+# 指定模型
+globalizer translate README.md --lang zh-CN -m gpt-4o-mini
 ```
 
 **执行后：**
@@ -190,16 +224,21 @@ jobs:
 ### 完整参数
 
 ```
-translate [文件] [flags]
+globalizer translate <文件> [flags]
 
 Flags:
-  -l, --lang      目标语言，逗号分隔    (默认: zh-CN)
-  -o, --output    输出目录             (默认: docs)
-  -m, --model     OpenAI 模型          (默认: gpt-4o)
-      --config    配置文件路径          (默认: .globalizer.yaml)
-      --source    源语言，留空自动检测
-      --dry-run   预览模式，不写文件
-      --mock      测试模式（无需 API Key）
+  -l, --lang       目标语言，逗号分隔        (默认: zh-CN)
+  -o, --output     输出目录                  (默认: docs)
+  -m, --model      OpenAI 模型名称           (默认: gpt-4o)
+      --api-key    OpenAI API Key           (优先级低于环境变量)
+      --base-url   API 地址                  (默认: https://api.openai.com/v1)
+      --config     配置文件路径              (默认: .globalizer.yaml)
+      --source     源语言，留空自动检测
+      --dry-run    预览模式，不写文件
+      --mock       测试模式（无需 API Key）
+
+Global Flags:
+      --config     配置文件路径              (默认: .globalizer.yaml)
 ```
 
 ---
@@ -217,3 +256,9 @@ A: 你的 OpenAI 项目没有该模型的访问权限，去 platform.openai.com 
 
 **Q: 翻译后 Markdown 格式乱了？**
 A: 提交 Issue 并附上原始文件和翻译结果，我们会修复 goldmark 解析规则。
+
+**Q: 二进制文件报 `bad CPU type`？**
+A: 下载的二进制与 CPU 架构不匹配。Mac Intel 用 `darwin-amd64`，M1/M2/M3 用 `darwin-arm64`。
+
+**Q: 报 `CGO_ENABLED=0` 或 `sqlite3` 相关错误？**
+A: v0.1.0+ 已使用纯 Go SQLite 驱动，无需 CGO。升级到最新版本即可。
