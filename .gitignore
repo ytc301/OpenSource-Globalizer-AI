@@ -38,9 +38,11 @@ Thumbs.db
 *.db-wal
 *.db-shm
 
-# Translation output (example)
+# Translation output
 docs/README.*.md
 !docs/README.md
+examples/**/README.*.md
+!examples/**/README.md
 
 # Docker
 .docker/
