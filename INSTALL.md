@@ -175,6 +175,8 @@ curl -X POST http://localhost:8080/api/v1/translate \
 
 ## 第六步（可选）：配置 GitHub Action 自动翻译
 
+### 方式一：使用 Action（推荐）
+
 在你项目的 `.github/workflows/i18n.yml` 中添加：
 
 ```yaml
@@ -190,11 +192,38 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: ytc301/OpenSource-Globalizer-AI/github-action@v0.1.0
+        with:
+          api-key: ${{ secrets.OPENAI_API_KEY }}
+          languages: zh-CN,ja,ko,es
+          model: gpt-4o
+```
+
+在 GitHub 仓库 Settings → Secrets → 添加 `OPENAI_API_KEY`。
+
+### 方式二：手动配置
+
+```yaml
+name: AI Translation
+
+on:
+  push:
+    paths:
+      - README.md
+
+jobs:
+  translate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.23"
       - name: Translate README
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
-          go install github.com/ytc301/OpenSource-Globalizer-AI/cmd/globalizer@latest
+          go install github.com/ytc301/OpenSource-Globalizer-AI/cmd/globalizer@v0.1.0
           globalizer translate README.md --lang zh-CN,ja,ko,es
       - uses: peter-evans/create-pull-request@v6
         with:
@@ -202,8 +231,6 @@ jobs:
           title: "🌍 i18n: Auto-translate README"
           branch: i18n/translate-readme
 ```
-
-在 GitHub 仓库 Settings → Secrets → 添加 `OPENAI_API_KEY`。
 
 完成后：每次修改 README.md 并推送，GitHub Action 自动翻译并创建 Pull Request。
 
