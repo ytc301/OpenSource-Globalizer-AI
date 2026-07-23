@@ -48,14 +48,30 @@ chmod +x globalizer
 # → globalizer v0.1.0
 ```
 
-### 方式二：Go 安装（需 Go 1.23+）
+### 方式二：Docker 运行（无需 Go 环境）
+
+```bash
+docker pull ghcr.io/ytc301/opensource-globalizer:v0.2.0-dev
+
+# CLI 模式
+docker run --rm -e OPENAI_API_KEY="sk-xxx" \
+  -v $(pwd):/workspace -w /workspace \
+  ghcr.io/ytc301/opensource-globalizer:v0.2.0-dev \
+  translate README.md --lang zh-CN
+
+# HTTP API 模式
+docker run -d -p 8080:8080 -e OPENAI_API_KEY="sk-xxx" \
+  ghcr.io/ytc301/opensource-globalizer:v0.2.0-dev serve
+```
+
+### 方式三：Go 安装（需 Go 1.23+）
 
 ```bash
 go install github.com/ytc301/OpenSource-Globalizer-AI/cmd/globalizer@latest
 globalizer version
 ```
 
-### 方式三：从源码编译
+### 方式四：从源码编译
 
 ```bash
 git clone https://github.com/ytc301/OpenSource-Globalizer-AI.git
