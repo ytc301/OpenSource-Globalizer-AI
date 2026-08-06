@@ -19,12 +19,14 @@ RUN apk --no-cache add ca-certificates tzdata
 
 WORKDIR /app
 
-COPY --from=builder /app/globalizer .
+COPY --from=builder /app/globalizer /usr/local/bin/globalizer
+COPY github-action/entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
 
 ENV GLOBALIZER_DB_PATH=/data/globalizer.db
 VOLUME ["/data"]
 
 EXPOSE 8080
 
-ENTRYPOINT ["./globalizer"]
+ENTRYPOINT ["/entrypoint.sh"]
 CMD ["serve"]
