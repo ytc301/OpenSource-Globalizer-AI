@@ -65,6 +65,19 @@ docker-down:
 install:
 	$(GO) install ./$(MAIN_PATH)
 
+# 版本发布: 打 tag 并推送
+release:
+	@test -n "$(VERSION)" || (echo "Usage: make release VERSION=v0.2.0" && exit 1)
+	git tag -a $(VERSION) -m "$(VERSION) release"
+	git push origin $(VERSION)
+	git push origin main
+
+# 推送 Docker 镜像到 GHCR
+docker-push:
+	@test -n "$(VERSION)" || (echo "Usage: make docker-push VERSION=v0.2.0-dev" && exit 1)
+	docker build -t ghcr.io/ytc301/opensource-globalizer:$(VERSION) .
+	docker push ghcr.io/ytc301/opensource-globalizer:$(VERSION)
+
 # 帮助
 help:
 	@echo "OpenSource Globalizer AI — Makefile"
@@ -82,3 +95,5 @@ help:
 	@echo "  make install      安装到本地 GOPATH"
 	@echo "  make docker-build Docker 构建"
 	@echo "  make docker-up    Docker 启动"
+	@echo "  make docker-push VERSION=v0.2.0-dev  推送镜像到 GHCR"
+	@echo "  make release VERSION=v0.2.0  打 tag 发布版本"
