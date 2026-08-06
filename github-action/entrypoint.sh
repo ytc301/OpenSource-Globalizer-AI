@@ -2,16 +2,23 @@
 set -e
 
 # GitHub Docker Action 将 inputs 作为环境变量 INPUT_<NAME> 传入
-# 本脚本将它们映射为 globalizer 参数，并处理 serve 模式
+# 本脚本将它们映射为 globalizer 参数
+#
+# 运行模式:
+#   1. 带参数运行时 (docker run image version / serve / translate ...)
+#      → 直接透传给 globalizer
+#   2. 无参数运行时 (GitHub Action 模式)
+#      → 读取 INPUT_* 环境变量执行 translate
 
-# 判断运行模式：serve 或 translate
 # 二进制位于 /usr/local/bin/globalizer (Dockerfile 安装)
 GLOBALIZER="${GLOBALIZER_BIN:-globalizer}"
-if [ "$1" = "serve" ]; then
-    exec "$GLOBALIZER" serve
+
+# 模式 1: 有参数 → 直接透传
+if [ $# -gt 0 ]; then
+    exec "$GLOBALIZER" "$@"
 fi
 
-# 默认 translate 模式
+# 模式 2: GitHub Action 模式 (无参数, 读取 INPUT_*)
 TARGET="${INPUT_TARGET:-README.md}"
 LANGUAGES="${INPUT_LANGUAGES:-zh-CN}"
 OUTPUT_DIR="${INPUT_OUTPUT_DIR:-docs}"
