@@ -5,8 +5,10 @@ set -e
 # 本脚本将它们映射为 globalizer 参数，并处理 serve 模式
 
 # 判断运行模式：serve 或 translate
+# 二进制位于 /usr/local/bin/globalizer (Dockerfile 安装)
+GLOBALIZER="${GLOBALIZER_BIN:-globalizer}"
 if [ "$1" = "serve" ]; then
-    exec /globalizer serve
+    exec "$GLOBALIZER" serve
 fi
 
 # 默认 translate 模式
@@ -23,7 +25,7 @@ if [ -z "$API_KEY" ]; then
 fi
 
 echo "::group::Translating $TARGET to $LANGUAGES"
-/globalizer translate "$TARGET" \
+"$GLOBALIZER" translate "$TARGET" \
     --lang "$LANGUAGES" \
     --output "$OUTPUT_DIR" \
     --model "$MODEL" \
