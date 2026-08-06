@@ -1,0 +1,24 @@
+name: AI Translation Test
+
+on:
+  push:
+    paths:
+      - "README.md"
+      - ".github/workflows/i18n.yml"
+  workflow_dispatch:
+
+jobs:
+  translate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Mock 模式: 验证 Action 全链路, 不调用真实 API
+      - uses: ytc301/OpenSource-Globalizer-AI/github-action@v0.2.0
+        with:
+          mock: "true"
+          languages: "zh-CN,ja"
+          output-dir: "docs"
+
+      - name: Show generated files
+        run: ls -la docs/ 2>/dev/null || echo "No docs generated in mock mode"

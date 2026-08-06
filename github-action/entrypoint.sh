@@ -25,6 +25,17 @@ OUTPUT_DIR="${INPUT_OUTPUT_DIR:-docs}"
 MODEL="${INPUT_MODEL:-gpt-4o}"
 BASE_URL="${INPUT_BASE_URL:-https://api.openai.com/v1}"
 API_KEY="${INPUT_API_KEY:-$OPENAI_API_KEY}"
+MOCK="${INPUT_MOCK:-false}"
+
+ARGS="translate $TARGET --lang $LANGUAGES --output $OUTPUT_DIR --model $MODEL --base-url $BASE_URL"
+
+if [ "$MOCK" = "true" ]; then
+    echo "::group::Translating $TARGET to $LANGUAGES (mock mode)"
+    # shellcheck disable=SC2086
+    "$GLOBALIZER" $ARGS --mock
+    echo "::endgroup::"
+    exit 0
+fi
 
 if [ -z "$API_KEY" ]; then
     echo "::error::OPENAI_API_KEY or input 'api-key' is required"
@@ -32,10 +43,6 @@ if [ -z "$API_KEY" ]; then
 fi
 
 echo "::group::Translating $TARGET to $LANGUAGES"
-"$GLOBALIZER" translate "$TARGET" \
-    --lang "$LANGUAGES" \
-    --output "$OUTPUT_DIR" \
-    --model "$MODEL" \
-    --base-url "$BASE_URL" \
-    --api-key "$API_KEY"
+# shellcheck disable=SC2086
+"$GLOBALIZER" $ARGS --api-key "$API_KEY"
 echo "::endgroup::"

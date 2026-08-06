@@ -8,8 +8,12 @@ branding:
 
 inputs:
   api-key:
-    description: "OpenAI API Key"
-    required: true
+    description: "OpenAI API Key (not required when mock is true)"
+    required: false
+  mock:
+    description: "Run in mock mode without calling the API (for testing)"
+    required: false
+    default: "false"
   languages:
     description: "Target languages, comma separated (e.g. zh-CN,ja,ko)"
     required: false
