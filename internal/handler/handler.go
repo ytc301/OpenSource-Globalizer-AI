@@ -8,6 +8,9 @@ import (
 	"go.uber.org/zap"
 )
 
+// Version 服务版本号（构建时可用 -ldflags 覆盖）。
+var Version = "0.2.0"
+
 // Handler HTTP API 处理器。
 type Handler struct {
 	translator *translator.Service
@@ -37,7 +40,7 @@ func (h *Handler) SetupRouter() *gin.Engine {
 
 	// 健康检查
 	r.GET("/health", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{"status": "ok", "version": "0.1.0"})
+		c.JSON(http.StatusOK, gin.H{"status": "ok", "version": Version})
 	})
 
 	// API v1
