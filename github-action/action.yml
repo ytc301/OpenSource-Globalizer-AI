@@ -41,7 +41,7 @@ inputs:
 
 runs:
   using: "docker"
-  image: "docker://ghcr.io/ytc301/opensource-globalizer:v0.2.0-dev"
+  image: "docker://ghcr.io/ytc301/opensource-globalizer-ai:v0.2.0"
 
 outputs:
   translated:

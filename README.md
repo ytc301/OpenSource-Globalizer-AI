@@ -65,23 +65,23 @@ go install github.com/ytc301/opensource-globalizer/cmd/globalizer@latest
 
 ```bash
 # 拉取镜像
-docker pull ghcr.io/ytc301/opensource-globalizer:v0.2.0
+docker pull ghcr.io/ytc301/opensource-globalizer-ai:v0.2.0
 
 # CLI 模式：翻译当前目录 README（需在 README.md 所在目录执行）
 docker run --rm -e OPENAI_API_KEY="sk-xxx" \
   -v $(pwd):/workspace -w /workspace \
-  ghcr.io/ytc301/opensource-globalizer:v0.2.0 \
+  ghcr.io/ytc301/opensource-globalizer-ai:v0.2.0 \
   translate README.md --lang zh-CN,ja
 
 # CLI 模式：自定义 API 地址和模型
 docker run --rm -e OPENAI_API_KEY="sk-xxx" \
   -v $(pwd):/workspace -w /workspace \
-  ghcr.io/ytc301/opensource-globalizer:v0.2.0 \
+  ghcr.io/ytc301/opensource-globalizer-ai:v0.2.0 \
   translate README.md --lang zh-CN --base-url https://api.example.com/v1 -m gpt-5-mini
 
 # HTTP API 模式（无需挂载）
 docker run -d -p 8080:8080 -e OPENAI_API_KEY="sk-xxx" \
-  ghcr.io/ytc301/opensource-globalizer:v0.2.0 serve
+  ghcr.io/ytc301/opensource-globalizer-ai:v0.2.0 serve
 ```
 
 ### 一行命令翻译

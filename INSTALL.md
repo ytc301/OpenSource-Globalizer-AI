@@ -55,23 +55,23 @@ chmod +x globalizer
 > 解决：Docker Desktop → Settings → Resources → File Sharing 中添加该目录，或改用 `/Users/...` 下的路径。
 
 ```bash
-docker pull ghcr.io/ytc301/opensource-globalizer:v0.2.0
+docker pull ghcr.io/ytc301/opensource-globalizer-ai:v0.2.0
 
 # CLI 模式：翻译当前目录 README（需在 README.md 所在目录执行）
 docker run --rm -e OPENAI_API_KEY="sk-xxx" \
   -v $(pwd):/workspace -w /workspace \
-  ghcr.io/ytc301/opensource-globalizer:v0.2.0 \
+  ghcr.io/ytc301/opensource-globalizer-ai:v0.2.0 \
   translate README.md --lang zh-CN,ja
 
 # CLI 模式：使用兼容 OpenAI 协议的第三方 API（自定义地址 + 模型）
 docker run --rm -e OPENAI_API_KEY="sk-xxx" \
   -v $(pwd):/workspace -w /workspace \
-  ghcr.io/ytc301/opensource-globalizer:v0.2.0 \
+  ghcr.io/ytc301/opensource-globalizer-ai:v0.2.0 \
   translate README.md --lang zh-CN --base-url https://api.example.com/v1 -m gpt-5-mini
 
 # HTTP API 模式（无需挂载）
 docker run -d -p 8080:8080 -e OPENAI_API_KEY="sk-xxx" \
-  ghcr.io/ytc301/opensource-globalizer:v0.2.0 serve
+  ghcr.io/ytc301/opensource-globalizer-ai:v0.2.0 serve
 ```
 
 ### 方式三：Go 安装（需 Go 1.23+）
