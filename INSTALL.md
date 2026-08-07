@@ -53,11 +53,17 @@ chmod +x globalizer
 ```bash
 docker pull ghcr.io/ytc301/opensource-globalizer:v0.2.0-dev
 
-# CLI 模式
+# CLI 模式：翻译当前目录 README（挂载工作区）
 docker run --rm -e OPENAI_API_KEY="sk-xxx" \
   -v $(pwd):/workspace -w /workspace \
   ghcr.io/ytc301/opensource-globalizer:v0.2.0-dev \
-  translate README.md --lang zh-CN
+  translate README.md --lang zh-CN,ja
+
+# CLI 模式：使用兼容 OpenAI 协议的第三方 API（自定义地址 + 模型）
+docker run --rm -e OPENAI_API_KEY="sk-xxx" \
+  -v $(pwd):/workspace -w /workspace \
+  ghcr.io/ytc301/opensource-globalizer:v0.2.0-dev \
+  translate README.md --lang zh-CN --base-url https://api.example.com/v1 -m gpt-5-mini
 
 # HTTP API 模式
 docker run -d -p 8080:8080 -e OPENAI_API_KEY="sk-xxx" \
