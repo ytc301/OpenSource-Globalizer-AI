@@ -38,6 +38,8 @@ jobs:
           languages: ${{ inputs.languages || 'zh-CN,ja' }}
           mock: ${{ inputs.mock && 'true' || 'false' }}
           model: ${{ vars.GLOBALIZER_MODEL || 'gpt-4o' }}
+          # 自定义 API 兼容端点: 仓库 Settings → Variables 配置 OPENAI_BASE_URL
+          base-url: ${{ vars.OPENAI_BASE_URL || 'https://api.openai.com/v1' }}
 
       - name: Show generated files
         run: ls -la docs/ 2>/dev/null || echo "No translation output"
