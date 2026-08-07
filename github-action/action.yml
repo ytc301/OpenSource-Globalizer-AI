@@ -8,71 +8,41 @@ branding:
 
 inputs:
   api-key:
-    description: "OpenAI API Key"
-    required: true
+    description: "OpenAI API Key (not required when mock is true)"
+    required: false
+  mock:
+    description: "Run in mock mode without calling the API (for testing)"
+    required: false
+    default: "false"
   languages:
-    description: "目标语言，逗号分隔"
+    description: "Target languages, comma separated (e.g. zh-CN,ja,ko)"
     required: false
     default: "zh-CN"
   target:
-    description: "要翻译的文件路径"
+    description: "File path to translate"
     required: false
     default: "README.md"
   output-dir:
-    description: "翻译输出目录"
+    description: "Output directory for translated files"
     required: false
     default: "docs"
   model:
-    description: "OpenAI 模型名称"
+    description: "OpenAI model name"
     required: false
     default: "gpt-4o"
   base-url:
-    description: "API 地址"
+    description: "API base URL"
     required: false
     default: "https://api.openai.com/v1"
-  version:
-    description: "globalizer 版本"
-    required: false
-    default: "v0.1.0"
   auto-pr:
-    description: "是否自动创建 Pull Request"
+    description: "Whether to automatically create a Pull Request"
     required: false
     default: "true"
 
 runs:
-  using: "composite"
-  steps:
-    - name: Setup Go
-      uses: actions/setup-go@v5
-      with:
-        go-version: "1.23"
+  using: "docker"
+  image: "docker://ghcr.io/ytc301/opensource-globalizer:v0.2.0-dev"
 
-    - name: Install Globalizer
-      shell: bash
-      run: go install github.com/ytc301/OpenSource-Globalizer-AI/cmd/globalizer@${{ inputs.version }}
-
-    - name: Run Translation
-      shell: bash
-      run: |
-        globalizer translate ${{ inputs.target }} \
-          --lang ${{ inputs.languages }} \
-          --output ${{ inputs.output-dir }} \
-          --model ${{ inputs.model }} \
-          --base-url ${{ inputs.base-url }} \
-          --api-key ${{ inputs.api-key }}
-
-    - name: Create Pull Request
-      if: inputs.auto-pr == 'true'
-      uses: peter-evans/create-pull-request@v6
-      with:
-        commit-message: "🌍 i18n: Auto-translate ${{ inputs.target }}"
-        title: "🌍 i18n: Auto-translate ${{ inputs.target }}"
-        body: |
-          ## 🌍 AI Translation
-
-          由 [OpenSource Globalizer AI](https://github.com/ytc301/opensource-globalizer) 自动翻译。
-
-          **目标语言**: ${{ inputs.languages }}
-          **模型**: ${{ inputs.model }}
-        branch: i18n/translate-${{ github.run_id }}
-        labels: i18n
+outputs:
+  translated:
+    description: "Comma-separated list of generated translation files"

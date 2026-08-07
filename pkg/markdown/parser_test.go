@@ -278,3 +278,31 @@ func TestReassemble_CodeBlockPreservedInResult(t *testing.T) {
 		t.Error("翻译文本丢失")
 	}
 }
+
+func TestParse_InlineLinkInParagraph(t *testing.T) {
+	// 段落内的链接必须保留完整语法（之前 extractText 会压成纯文本）
+	p := NewParser()
+	segs := p.Parse("See [docs](docs/guide.md) for details.")
+
+	for _, seg := range segs {
+		if seg.Type == Text {
+			if !strings.Contains(seg.Content, "[docs](docs/guide.md)") {
+				t.Errorf("段落内链接语法丢失: %q", seg.Content)
+			}
+		}
+	}
+}
+
+func TestParse_InlineBoldInParagraph(t *testing.T) {
+	// 段落内的粗体标记必须保留
+	p := NewParser()
+	segs := p.Parse("This is **very important** text.")
+
+	for _, seg := range segs {
+		if seg.Type == Text {
+			if !strings.Contains(seg.Content, "**very important**") {
+				t.Errorf("段落内粗体标记丢失: %q", seg.Content)
+			}
+		}
+	}
+}
