@@ -44,6 +44,12 @@ jobs:
       - name: Show generated files
         run: ls -la docs/ 2>/dev/null || echo "No translation output"
 
+      # 翻译产物在 .gitignore 中 (docs/README.*.md), 需强制添加才能进入 PR
+      - name: Force add translation files
+        run: |
+          git add -f docs/README.*.md
+          git status --short
+
       # 真实模式: 翻译有变更时自动创建 PR
       # Mock 模式不创建 PR (仅验证链路)
       - name: Create Pull Request
