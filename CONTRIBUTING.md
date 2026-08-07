@@ -5,7 +5,7 @@ Thanks for your interest in contributing! 🎉
 ## Getting Started
 
 1. Fork the repository
-2. Clone your fork: `git clone https://github.com/YOUR_USERNAME/opensource-globalizer.git`
+2. Clone your fork: `git clone https://github.com/YOUR_USERNAME/OpenSource-Globalizer-AI.git`
 3. Create a branch: `git checkout -b feat/your-feature`
 4. Make your changes
 5. Run tests: `make test`

@@ -64,7 +64,7 @@
 
 ### v0.2.0 交付物
 
-- Docker 镜像: `ghcr.io/ytc301/opensource-globalizer:v0.2.0` (GHCR 公开)
+- Docker 镜像: `ghcr.io/ytc301/opensource-globalizer-ai:v0.2.0` (GHCR 公开)
 - GitHub Action: `ytc301/OpenSource-Globalizer-AI/github-action@v0.2.0` (mock + 真实模式)
 - 自动 PR: push README → 翻译 → create-pull-request 自动创建 PR
 - 真实 API 验证: Badge/列表/表格/链接/代码块全保留

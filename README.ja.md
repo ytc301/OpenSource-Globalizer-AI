@@ -268,7 +268,7 @@ opensource-globalizer/
 コントリビューションを歓迎します！ まず [CONTRIBUTING.md](CONTRIBUTING.md) をお読みください。
 
 ```bash
-git clone https://github.com/ytc301/opensource-globalizer.git
+git clone https://github.com/ytc301/OpenSource-Globalizer-AI.git
 make deps
 make test
 make build
