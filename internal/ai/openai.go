@@ -34,7 +34,7 @@ func NewOpenAI(cfg OpenAIConfig) *OpenAIProvider {
 		cfg.BaseURL = "https://api.openai.com/v1"
 	}
 	if cfg.HTTPTimeout == 0 {
-		cfg.HTTPTimeout = 60 * time.Second
+		cfg.HTTPTimeout = 180 * time.Second
 	}
 	if cfg.MaxRetries <= 0 {
 		cfg.MaxRetries = DefaultMaxRetries
@@ -236,8 +236,8 @@ func buildTranslateSystemPrompt(opts TranslateOptions) string {
 
 	// 分隔符保留规则 (必须最先处理)
 	if hasPreserve("separators") {
-		prompt += "\n- CRITICAL: Preserve the <<<SEGMENT_SEPARATOR>>> markers exactly as they appear. Do NOT translate or modify them."
-		prompt += "\n- Translate each segment between separators independently."
+		prompt += "\n- CRITICAL: The input contains numbered markers like <<<SEGMENT_1>>> between segments. Preserve every marker exactly as-is (including the number). Do NOT translate, merge, reorder or remove any marker."
+		prompt += "\n- Translate each segment after its marker independently. Keep the segment's internal structure (list bullets, table pipes, line breaks)."
 	}
 	if hasPreserve("code_blocks") {
 		prompt += "\n- NEVER translate content inside code blocks (```). Keep the code fences intact."

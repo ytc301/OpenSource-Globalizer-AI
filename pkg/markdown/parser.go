@@ -7,6 +7,8 @@ import (
 
 	"github.com/yuin/goldmark"
 	"github.com/yuin/goldmark/ast"
+	"github.com/yuin/goldmark/extension"
+	extast "github.com/yuin/goldmark/extension/ast"
 	"github.com/yuin/goldmark/text"
 )
 
@@ -60,12 +62,13 @@ const (
 	List
 	Blockquote
 	ThematicBreak
+	Table
 )
 
 // CanTranslate 判断是否需要翻译。
 func (p *Parser) CanTranslate(s Segment) bool {
 	switch s.Type {
-	case Text, Heading, List, Blockquote:
+	case Text, Heading, List, Blockquote, Table:
 		return true
 	default:
 		return false
@@ -78,8 +81,9 @@ func (p *Parser) ShouldPreserve(s Segment) bool {
 }
 
 // Parse 解析 Markdown → 片段列表。
+// 启用 GFM 扩展以支持表格、删除线等 GitHub 方言语法。
 func (p *Parser) Parse(content string) []Segment {
-	md := goldmark.New()
+	md := goldmark.New(goldmark.WithExtensions(extension.GFM))
 	reader := text.NewReader([]byte(content))
 	doc := md.Parser().Parse(reader)
 
@@ -165,11 +169,22 @@ func (p *Parser) walkNode(n ast.Node, source []byte, segments *[]Segment) {
 			})
 		}
 
-	case ast.KindList, ast.KindListItem:
-		text := p.extractText(n, source)
+	case ast.KindList:
+		// 用原始源码保留列表标记（- / * / 1.）和换行结构
+		text := strings.TrimSpace(blockSource(n, source))
 		if text != "" {
 			*segments = append(*segments, Segment{
 				Type:    List,
+				Content: text,
+			})
+		}
+
+	case extast.KindTable:
+		// 用原始源码保留表格的 | 分隔符和换行
+		text := strings.TrimSpace(blockSource(n, source))
+		if text != "" {
+			*segments = append(*segments, Segment{
+				Type:    Table,
 				Content: text,
 			})
 		}
@@ -190,12 +205,16 @@ func (p *Parser) walkNode(n ast.Node, source []byte, segments *[]Segment) {
 		})
 
 	case ast.KindParagraph, ast.KindTextBlock:
-		text := strings.TrimSpace(p.extractText(n, source))
-		if text != "" {
-			if p.preserveBadges && isBadge(text) {
-				*segments = append(*segments, Segment{Type: Image, Content: text})
+		// 用原始 Markdown 源码检测 Badge（extractText 只取纯文本，会把 URL 丢掉）
+		rawText := strings.TrimSpace(p.nodeText(n, source))
+		if rawText != "" {
+			if p.preserveBadges && isBadge(rawText) {
+				*segments = append(*segments, Segment{Type: Image, Content: rawText})
 			} else {
-				*segments = append(*segments, Segment{Type: Text, Content: text})
+				text := strings.TrimSpace(p.extractText(n, source))
+				if text != "" {
+					*segments = append(*segments, Segment{Type: Text, Content: text})
+				}
 			}
 		}
 
@@ -219,6 +238,45 @@ func (p *Parser) extractText(n ast.Node, source []byte) string {
 		return ast.WalkContinue, nil
 	})
 	return strings.Join(parts, "")
+}
+
+// blockSource 提取块节点的原始 Markdown 源码。
+// goldmark 容器节点（List/Table 等）没有 Lines()，需要遍历后代块节点
+// 收集最小起始 / 最大结束位置，再从源码切片（保留列表标记、表格竖线、换行）。
+func blockSource(n ast.Node, source []byte) string {
+	start, end := -1, -1
+	ast.Walk(n, func(c ast.Node, entering bool) (ast.WalkStatus, error) {
+		if !entering {
+			return ast.WalkContinue, nil
+		}
+		// inline 节点（Text/Span/CodeSpan/Link/Image 等）没有 Lines()，调用会 panic
+		switch c.Kind() {
+		case ast.KindText, ast.KindString, ast.KindCodeSpan, ast.KindEmphasis,
+			ast.KindLink, ast.KindAutoLink, ast.KindImage, ast.KindRawHTML:
+			return ast.WalkContinue, nil
+		}
+		lines := c.Lines()
+		if lines == nil || lines.Len() == 0 {
+			return ast.WalkContinue, nil
+		}
+		first := lines.At(0).Start
+		last := lines.At(lines.Len() - 1).Stop
+		if start == -1 || first < start {
+			start = first
+		}
+		if last > end {
+			end = last
+		}
+		return ast.WalkContinue, nil
+	})
+	if start == -1 {
+		return ""
+	}
+	// 回溯到行首，包含列表标记（- / * / 1.）或表格开头的 |
+	for start > 0 && source[start-1] != '\n' {
+		start--
+	}
+	return string(source[start:end])
 }
 
 // nodeText 获取节点原始文本（含标记）。
@@ -258,7 +316,7 @@ func Reassemble(segments []Segment, translations map[int]string) string {
 	var result []string
 	transIdx := 0
 	for _, seg := range segments {
-		if seg.Type == Text || seg.Type == Heading || seg.Type == List || seg.Type == Blockquote {
+		if seg.Type == Text || seg.Type == Heading || seg.Type == List || seg.Type == Blockquote || seg.Type == Table {
 			if t, ok := translations[transIdx]; ok {
 				result = append(result, t)
 			} else {
