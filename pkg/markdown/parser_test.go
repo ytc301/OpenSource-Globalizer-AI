@@ -3,6 +3,10 @@ package markdown
 import (
 	"strings"
 	"testing"
+
+	"github.com/yuin/goldmark"
+	"github.com/yuin/goldmark/extension"
+	"github.com/yuin/goldmark/text"
 )
 
 func TestParse_SimpleParagraph(t *testing.T) {
@@ -304,5 +308,78 @@ func TestParse_InlineBoldInParagraph(t *testing.T) {
 				t.Errorf("段落内粗体标记丢失: %q", seg.Content)
 			}
 		}
+	}
+}
+
+func TestParse_LinkReferenceDefinitionPreserved(t *testing.T) {
+	// 引用式链接定义（[id]: url）必须原样保留，否则翻译后引用失效
+	p := NewParser()
+	segs := p.Parse("Reference: [docs][ref-docs].\n\n[ref-docs]: https://example.com/docs")
+
+	found := false
+	for _, seg := range segs {
+		if strings.Contains(seg.Content, "[ref-docs]: https://example.com/docs") {
+			found = true
+			if seg.Type == Text || seg.Type == Heading || seg.Type == List ||
+				seg.Type == Blockquote || seg.Type == Table {
+				t.Errorf("引用链接定义不应作为可翻译段: type=%v content=%q", seg.Type, seg.Content)
+			}
+		}
+	}
+	if !found {
+		t.Errorf("引用链接定义丢失:\nsegments=%v", segs)
+	}
+}
+
+func TestParse_WithoutCodeBlocks(t *testing.T) {
+	// 关闭代码块保留后，代码块作为普通文本参与翻译
+	p := NewParser(WithoutCodeBlocks())
+	segs := p.Parse("```go\nfmt.Println(\"hi\")\n```")
+
+	hasText := false
+	for _, seg := range segs {
+		if seg.Type == Text && strings.Contains(seg.Content, "fmt.Println") {
+			hasText = true
+		}
+		if seg.Type == CodeBlock {
+			t.Error("WithoutCodeBlocks 后代码块不应作为 CodeBlock 保留")
+		}
+	}
+	if !hasText {
+		t.Errorf("代码块未被转换为可翻译文本: %v", segs)
+	}
+}
+
+func TestShouldPreserve(t *testing.T) {
+	p := NewParser()
+	for _, typ := range []SegmentType{Text, Heading, List, Blockquote, Table} {
+		seg := Segment{Type: typ}
+		if p.CanTranslate(seg) != true || p.ShouldPreserve(seg) != false {
+			t.Errorf("类型 %v 应可翻译且不应保留: CanTranslate=%v ShouldPreserve=%v",
+				typ, p.CanTranslate(seg), p.ShouldPreserve(seg))
+		}
+	}
+	for _, typ := range []SegmentType{CodeBlock, Link, Image, HTMLBlock, ThematicBreak} {
+		seg := Segment{Type: typ}
+		if p.CanTranslate(seg) != false || p.ShouldPreserve(seg) != true {
+			t.Errorf("类型 %v 应保留且不应翻译: CanTranslate=%v ShouldPreserve=%v",
+				typ, p.CanTranslate(seg), p.ShouldPreserve(seg))
+		}
+	}
+}
+
+func TestExtractText(t *testing.T) {
+	// extractText 是 nodeText 行源为空时的兜底路径，白盒直接验证
+	p := NewParser()
+	content := []byte("Hello **bold** and `code`")
+	md := goldmark.New(goldmark.WithExtensions(extension.GFM))
+	doc := md.Parser().Parse(text.NewReader(content))
+
+	got := p.extractText(doc, content)
+	if !strings.Contains(got, "Hello") || !strings.Contains(got, "bold") {
+		t.Errorf("extractText 提取失败: %q", got)
+	}
+	if strings.Contains(got, "**") || strings.Contains(got, "`") {
+		t.Errorf("extractText 应返回纯文本, 实际含标记: %q", got)
 	}
 }

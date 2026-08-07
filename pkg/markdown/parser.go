@@ -118,6 +118,16 @@ func (p *Parser) walkNode(n ast.Node, source []byte, segments *[]Segment) {
 		})
 
 	case ast.KindFencedCodeBlock, ast.KindCodeBlock:
+		if !p.preserveCodeBlocks {
+			// 用户关闭代码块保留 → 作为普通文本参与翻译
+			if text := strings.TrimSpace(p.nodeText(n, source)); text != "" {
+				*segments = append(*segments, Segment{
+					Type:    Text,
+					Content: text,
+				})
+			}
+			return
+		}
 		lines := n.Lines()
 		var buf bytes.Buffer
 		lang := ""
@@ -170,6 +180,15 @@ func (p *Parser) walkNode(n ast.Node, source []byte, segments *[]Segment) {
 			*segments = append(*segments, Segment{
 				Type:    HTMLBlock,
 				Content: p.nodeText(n, source),
+			})
+		}
+
+	case ast.KindLinkReferenceDefinition:
+		// 引用式链接定义（[id]: url）原样保留，否则翻译后引用失效
+		if text := strings.TrimSpace(p.nodeText(n, source)); text != "" {
+			*segments = append(*segments, Segment{
+				Type:    HTMLBlock,
+				Content: text,
 			})
 		}
 
