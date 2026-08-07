@@ -37,9 +37,9 @@ But most maintainers cannot manually translate every README, every Issue, every 
 
 | Feature | Ver | Status | Description |
 |---------|-----|--------|-------------|
-| 📖 **README Translator** | v0.1 | 🚧 In Progress | Translate README.md to multiple languages, goldmark AST preserves all formatting |
-| 🌐 **HTTP API** | v0.1 | 🚧 In Progress | REST API via Gin, POST /api/v1/translate |
-| 🔄 **GitHub Action** | v0.2 | 📋 Planned | Auto-translate on push, create PR automatically |
+| 📖 **README Translator** | v0.1 | ✅ Released | Translate README.md to multiple languages, goldmark AST preserves all formatting |
+| 🌐 **HTTP API** | v0.1 | ✅ Released | REST API via Gin, POST /api/v1/translate |
+| 🔄 **GitHub Action** | v0.2 | 🚧 In Progress | Auto-translate on push, create PR automatically |
 | 🏷️ **Issue Assistant** | v0.3 | 📋 Planned | Detect issue language, auto-classify, translate |
 | 📦 **Release Assistant** | v0.4 | 📋 Planned | Generate multi-language release notes |
 | 🤖 **GitHub App** | v1.0 | 📋 Planned | Full bot integration with PR comments and review |
@@ -55,6 +55,23 @@ But most maintainers cannot manually translate every README, every Issue, every 
 ```bash
 # 下载预编译二进制（macOS/Linux/Windows）或：
 go install github.com/ytc301/opensource-globalizer/cmd/globalizer@latest
+```
+
+### Docker 运行（无需 Go 环境）
+
+```bash
+# 拉取镜像
+docker pull ghcr.io/ytc301/opensource-globalizer:v0.2.0
+
+# CLI 模式：翻译当前目录 README
+docker run --rm -e OPENAI_API_KEY="sk-xxx" \
+  -v $(pwd):/workspace -w /workspace \
+  ghcr.io/ytc301/opensource-globalizer:v0.2.0 \
+  translate README.md --lang zh-CN,ja
+
+# HTTP API 模式
+docker run -d -p 8080:8080 -e OPENAI_API_KEY="sk-xxx" \
+  ghcr.io/ytc301/opensource-globalizer:v0.2.0 serve
 ```
 
 ### 一行命令翻译
@@ -178,8 +195,8 @@ opensource-globalizer/
 
 | Version | Timeline | Deliverable | Status |
 |---------|----------|-------------|--------|
-| **v0.1.0** | 2026-07 (Week 1-2) | CLI README Translator + HTTP API | 🚧 In Progress |
-| **v0.2.0** | 2026-07 (Week 3-4) | GitHub Action + Auto PR + Docker Image | 📋 Planned |
+| **v0.1.0** | 2026-07 (Week 1-2) | CLI README Translator + HTTP API | ✅ Released |
+| **v0.2.0** | 2026-07 (Week 3-4) | GitHub Action + Auto PR + Docker Image | 🚧 In Progress |
 | **v0.3.0** | 2026-08 | Issue Language Detect + Translate + Label | 📋 Planned |
 | **v0.4.0** | 2026-09 | Release Notes Multi-language Generation | 📋 Planned |
 | **v1.0.0** | 2026-10 | GitHub App + Dashboard + Multi-AI-Provider | 📋 Planned |

@@ -48,14 +48,36 @@ chmod +x globalizer
 # → globalizer v0.1.0
 ```
 
-### 方式二：Go 安装（需 Go 1.23+）
+### 方式二：Docker 运行（无需 Go 环境）
+
+```bash
+docker pull ghcr.io/ytc301/opensource-globalizer:v0.2.0-dev
+
+# CLI 模式：翻译当前目录 README（挂载工作区）
+docker run --rm -e OPENAI_API_KEY="sk-xxx" \
+  -v $(pwd):/workspace -w /workspace \
+  ghcr.io/ytc301/opensource-globalizer:v0.2.0-dev \
+  translate README.md --lang zh-CN,ja
+
+# CLI 模式：使用兼容 OpenAI 协议的第三方 API（自定义地址 + 模型）
+docker run --rm -e OPENAI_API_KEY="sk-xxx" \
+  -v $(pwd):/workspace -w /workspace \
+  ghcr.io/ytc301/opensource-globalizer:v0.2.0-dev \
+  translate README.md --lang zh-CN --base-url https://api.example.com/v1 -m gpt-5-mini
+
+# HTTP API 模式
+docker run -d -p 8080:8080 -e OPENAI_API_KEY="sk-xxx" \
+  ghcr.io/ytc301/opensource-globalizer:v0.2.0-dev serve
+```
+
+### 方式三：Go 安装（需 Go 1.23+）
 
 ```bash
 go install github.com/ytc301/OpenSource-Globalizer-AI/cmd/globalizer@latest
 globalizer version
 ```
 
-### 方式三：从源码编译
+### 方式四：从源码编译
 
 ```bash
 git clone https://github.com/ytc301/OpenSource-Globalizer-AI.git
@@ -192,11 +214,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: ytc301/OpenSource-Globalizer-AI/github-action@v0.1.0
+      - uses: ytc301/OpenSource-Globalizer-AI/github-action@v0.2.0
         with:
           api-key: ${{ secrets.OPENAI_API_KEY }}
           languages: zh-CN,ja,ko,es
           model: gpt-4o
+      # 可选：自动创建 Pull Request
+      - uses: peter-evans/create-pull-request@v6
+        with:
+          commit-message: "🌍 i18n: Auto-translate README"
+          title: "🌍 i18n: Auto-translate README"
+          branch: i18n/translate-readme
 ```
 
 在 GitHub 仓库 Settings → Secrets → 添加 `OPENAI_API_KEY`。
