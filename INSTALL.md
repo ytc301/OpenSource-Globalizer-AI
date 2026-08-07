@@ -50,24 +50,28 @@ chmod +x globalizer
 
 ### 方式二：Docker 运行（无需 Go 环境）
 
-```bash
-docker pull ghcr.io/ytc301/opensource-globalizer:v0.2.0-dev
+> **前提**：CLI 模式用 `-v $(pwd):/workspace` 挂载当前目录，**必须在 README.md 所在目录执行**。
+> macOS Docker Desktop 默认只共享 `/Users` 等目录 — 在 `/tmp` 等非共享目录执行会报 `no such file or directory`。
+> 解决：Docker Desktop → Settings → Resources → File Sharing 中添加该目录，或改用 `/Users/...` 下的路径。
 
-# CLI 模式：翻译当前目录 README（挂载工作区）
+```bash
+docker pull ghcr.io/ytc301/opensource-globalizer:v0.2.0
+
+# CLI 模式：翻译当前目录 README（需在 README.md 所在目录执行）
 docker run --rm -e OPENAI_API_KEY="sk-xxx" \
   -v $(pwd):/workspace -w /workspace \
-  ghcr.io/ytc301/opensource-globalizer:v0.2.0-dev \
+  ghcr.io/ytc301/opensource-globalizer:v0.2.0 \
   translate README.md --lang zh-CN,ja
 
 # CLI 模式：使用兼容 OpenAI 协议的第三方 API（自定义地址 + 模型）
 docker run --rm -e OPENAI_API_KEY="sk-xxx" \
   -v $(pwd):/workspace -w /workspace \
-  ghcr.io/ytc301/opensource-globalizer:v0.2.0-dev \
+  ghcr.io/ytc301/opensource-globalizer:v0.2.0 \
   translate README.md --lang zh-CN --base-url https://api.example.com/v1 -m gpt-5-mini
 
-# HTTP API 模式
+# HTTP API 模式（无需挂载）
 docker run -d -p 8080:8080 -e OPENAI_API_KEY="sk-xxx" \
-  ghcr.io/ytc301/opensource-globalizer:v0.2.0-dev serve
+  ghcr.io/ytc301/opensource-globalizer:v0.2.0 serve
 ```
 
 ### 方式三：Go 安装（需 Go 1.23+）
