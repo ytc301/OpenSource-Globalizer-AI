@@ -107,7 +107,11 @@ func (p *Parser) walkNode(n ast.Node, source []byte, segments *[]Segment) {
 	case ast.KindHeading:
 		heading := n.(*ast.Heading)
 		prefix := strings.Repeat("#", heading.Level) + " "
-		text := p.extractText(n, source)
+		// 保留标题内的链接 / 行内代码 / 粗体等 Markdown 语法
+		text := p.nodeText(n, source)
+		if text == "" {
+			text = p.extractText(n, source)
+		}
 		*segments = append(*segments, Segment{
 			Type:    Heading,
 			Content: prefix + text,
@@ -190,7 +194,11 @@ func (p *Parser) walkNode(n ast.Node, source []byte, segments *[]Segment) {
 		}
 
 	case ast.KindBlockquote:
-		text := p.extractText(n, source)
+		// 保留引用块内的链接 / 粗体等 Markdown 语法
+		text := strings.TrimSpace(blockSource(n, source))
+		if text == "" {
+			text = p.extractText(n, source)
+		}
 		if text != "" {
 			*segments = append(*segments, Segment{
 				Type:    Blockquote,
@@ -205,16 +213,14 @@ func (p *Parser) walkNode(n ast.Node, source []byte, segments *[]Segment) {
 		})
 
 	case ast.KindParagraph, ast.KindTextBlock:
-		// 用原始 Markdown 源码检测 Badge（extractText 只取纯文本，会把 URL 丢掉）
+		// 用原始 Markdown 源码：保留段落内的链接 / 粗体 / 行内代码，
+		// 并据此检测 Badge（extractText 只取纯文本，会把 URL 和语法丢掉）
 		rawText := strings.TrimSpace(p.nodeText(n, source))
 		if rawText != "" {
 			if p.preserveBadges && isBadge(rawText) {
 				*segments = append(*segments, Segment{Type: Image, Content: rawText})
 			} else {
-				text := strings.TrimSpace(p.extractText(n, source))
-				if text != "" {
-					*segments = append(*segments, Segment{Type: Text, Content: text})
-				}
+				*segments = append(*segments, Segment{Type: Text, Content: rawText})
 			}
 		}
 
