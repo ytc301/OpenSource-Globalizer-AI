@@ -16,10 +16,18 @@ GLOBALIZER="${GLOBALIZER_BIN:-globalizer}"
 if [ -n "$INPUT_TARGET" ]; then
     TARGET="$INPUT_TARGET"
     LANGUAGES="${INPUT_LANGUAGES:-zh-CN}"
-    OUTPUT_DIR="${INPUT_OUTPUT_DIR:-docs}"
+    # 注意: GitHub Docker Action 的 input 名保留连字符 (INPUT_API-KEY),
+    # 而 sh 变量名不能含连字符, 需从环境变量中查找
+    get_env() {
+        env | grep "^$1=" | head -1 | cut -d= -f2-
+    }
+    OUTPUT_DIR="$(get_env INPUT_OUTPUT-DIR)"
+    [ -n "$OUTPUT_DIR" ] || OUTPUT_DIR="${INPUT_OUTPUT_DIR:-docs}"
     MODEL="${INPUT_MODEL:-gpt-4o}"
-    BASE_URL="${INPUT_BASE_URL:-${OPENAI_BASE_URL:-https://api.openai.com/v1}}"
-    API_KEY="${INPUT_API_KEY:-$OPENAI_API_KEY}"
+    BASE_URL="$(get_env INPUT_BASE-URL)"
+    [ -n "$BASE_URL" ] || BASE_URL="${INPUT_BASE_URL:-${OPENAI_BASE_URL:-https://api.openai.com/v1}}"
+    API_KEY="$(get_env INPUT_API-KEY)"
+    [ -n "$API_KEY" ] || API_KEY="${INPUT_API_KEY:-$OPENAI_API_KEY}"
     MOCK="${INPUT_MOCK:-false}"
 
     ARGS="translate $TARGET --lang $LANGUAGES --output $OUTPUT_DIR --model $MODEL --base-url $BASE_URL"
