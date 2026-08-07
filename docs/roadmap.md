@@ -8,8 +8,8 @@
 
 | 版本 | 时间 | 主题 | 核心交付 | 状态 |
 |------|------|------|---------|------|
-| **v0.1.0** | 2026-07 Week 1-2 | 🏗️ MVP CLI | CLI + HTTP API — README 翻译 | 🚧 |
-| **v0.2.0** | 2026-07 Week 3-4 | 🔄 Action | GitHub Action + Docker + 自动 PR | 📋 |
+| **v0.1.0** | 2026-07 Week 1-2 | 🏗️ MVP CLI | CLI + HTTP API — README 翻译 | ✅ |
+| **v0.2.0** | 2026-07 Week 3-4 | 🔄 Action | GitHub Action + Docker + 自动 PR | ✅ |
 | **v0.3.0** | 2026-08 | 🏷️ Issue AI | Issue 语言检测 + 翻译 + 分类 | 📋 |
 | **v0.4.0** | 2026-09 | 📦 Release AI | Release Notes 多语言生成 | 📋 |
 | **v1.0.0** | 2026-10 | 🤖 GitHub App | 完整 GitHub App + 多 AI Provider | 📋 |
@@ -47,26 +47,29 @@
 
 ---
 
-## v0.2.0 — GitHub Action + Docker
+## v0.2.0 — GitHub Action + Docker ✅
 
 > **目标**: 用户配置 `.github/workflows/i18n.yml` → push README → 自动翻译 + 自动 PR。
 
-**时间**: 2026-07-28 → 2026-08-10 (2 周)
+**时间**: 2026-07-28 → 2026-08-10 (2 周) ✅ 完成于 2026-08-07
 
-| # | 任务 | 优先级 |
-|---|------|--------|
-| 1 | GitHub Action 开发 (action.yml + Dockerfile) | P0 |
-| 2 | Docker 镜像构建 + 发布到 GHCR | P0 |
-| 3 | Action 集成测试 (真实 GitHub 仓库) | P0 |
-| 4 | peter-evans/create-pull-request 集成 | P0 |
-| 5 | Action 文档 + 示例项目 | P0 |
-| 6 | 翻译语言扩展到 15+ | P1 |
+| # | 任务 | 优先级 | 状态 |
+|---|------|--------|------|
+| 1 | GitHub Action 开发 (action.yml + Dockerfile) | P0 | ✅ |
+| 2 | Docker 镜像构建 + 发布到 GHCR | P0 | ✅ |
+| 3 | Action 集成测试 (真实 GitHub 仓库) | P0 | ✅ |
+| 4 | peter-evans/create-pull-request 集成 | P0 | ✅ |
+| 5 | Action 文档 + 示例项目 | P0 | ✅ |
+| 6 | 翻译语言扩展到 15+ | P1 | 📋 后续 |
 
-### v0.2.0 验收
+### v0.2.0 交付物
 
-- Action 在真实 GitHub 仓库中触发并成功创建 PR
-- Docker 镜像可拉取并运行
-- PR 标题/描述符合规范
+- Docker 镜像: `ghcr.io/ytc301/opensource-globalizer:v0.2.0` (GHCR 公开)
+- GitHub Action: `ytc301/OpenSource-Globalizer-AI/github-action@v0.2.0` (mock + 真实模式)
+- 自动 PR: push README → 翻译 → create-pull-request 自动创建 PR
+- 真实 API 验证: Badge/列表/表格/链接/代码块全保留
+- 重试机制: 指数退避 3 次 (5xx/429), 401 不重试
+- 单元测试: 70+ 用例 (markdown 19 / translator 12 / store 8 / config 6 / handler 5 / ai 9)
 
 ---
 
