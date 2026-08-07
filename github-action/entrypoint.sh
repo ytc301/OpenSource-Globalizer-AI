@@ -18,7 +18,7 @@ if [ -n "$INPUT_TARGET" ]; then
     LANGUAGES="${INPUT_LANGUAGES:-zh-CN}"
     OUTPUT_DIR="${INPUT_OUTPUT_DIR:-docs}"
     MODEL="${INPUT_MODEL:-gpt-4o}"
-    BASE_URL="${INPUT_BASE_URL:-https://api.openai.com/v1}"
+    BASE_URL="${INPUT_BASE_URL:-${OPENAI_BASE_URL:-https://api.openai.com/v1}}"
     API_KEY="${INPUT_API_KEY:-$OPENAI_API_KEY}"
     MOCK="${INPUT_MOCK:-false}"
 
