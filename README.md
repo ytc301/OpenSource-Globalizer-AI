@@ -263,7 +263,7 @@ See [docs/roadmap.md](docs/roadmap.md) for detailed milestones.
 Contributions welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) first.
 
 ```bash
-git clone https://github.com/ytc301/opensource-globalizer.git
+git clone https://github.com/ytc301/OpenSource-Globalizer-AI.git
 make deps
 make test
 make build

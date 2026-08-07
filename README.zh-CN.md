@@ -267,7 +267,7 @@ opensource-globalizer/
 欢迎贡献！请先阅读 [CONTRIBUTING.md](CONTRIBUTING.md)。
 
 ```bash
-git clone https://github.com/ytc301/opensource-globalizer.git
+git clone https://github.com/ytc301/OpenSource-Globalizer-AI.git
 make deps
 make test
 make build
