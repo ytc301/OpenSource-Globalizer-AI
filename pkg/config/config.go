@@ -78,6 +78,7 @@ func Load(cfgFile string) (*Config, error) {
 
 	v.SetEnvPrefix("GLOBALIZER")
 	v.BindEnv("openai.api_key", "OPENAI_API_KEY")
+	v.BindEnv("openai.base_url", "OPENAI_BASE_URL")
 	v.BindEnv("db_path", "GLOBALIZER_DB_PATH")
 	v.AutomaticEnv()
 

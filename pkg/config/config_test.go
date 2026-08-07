@@ -143,3 +143,19 @@ model: gpt-4o-mini`
 		t.Error("CodeBlocks 应保持默认 true")
 	}
 }
+
+func TestLoad_EnvVarOverrides(t *testing.T) {
+	t.Setenv("OPENAI_API_KEY", "sk-env-test")
+	t.Setenv("OPENAI_BASE_URL", "https://env.example.com/v1")
+
+	cfg, err := Load(t.TempDir() + "/nonexistent.yaml")
+	if err != nil {
+		t.Fatalf("加载失败: %v", err)
+	}
+	if cfg.OpenAI.APIKey != "sk-env-test" {
+		t.Errorf("OPENAI_API_KEY 应生效, 实际 %q", cfg.OpenAI.APIKey)
+	}
+	if cfg.OpenAI.BaseURL != "https://env.example.com/v1" {
+		t.Errorf("OPENAI_BASE_URL 应生效, 实际 %q", cfg.OpenAI.BaseURL)
+	}
+}
