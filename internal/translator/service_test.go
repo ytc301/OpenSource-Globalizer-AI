@@ -132,3 +132,76 @@ func TestTranslateFile_UsedSegmentsOrder(t *testing.T) {
 		t.Error("重组后代码块内容丢失")
 	}
 }
+
+func TestJoinForTranslation_NumberedSeparators(t *testing.T) {
+	parts := []string{"Hello world", "Second paragraph", "Third"}
+	joined := joinForTranslation(parts)
+
+	want := "<<<SEGMENT_1>>>\nHello world\n\n<<<SEGMENT_2>>>\nSecond paragraph\n\n<<<SEGMENT_3>>>\nThird"
+	if joined != want {
+		t.Errorf("拼接结果不正确\n got: %q\nwant: %q", joined, want)
+	}
+}
+
+func TestSplitTranslation_AllMarkersPreserved(t *testing.T) {
+	translated := "<<<SEGMENT_1>>>\n你好世界\n\n<<<SEGMENT_2>>>\n第二段\n\n<<<SEGMENT_3>>>\n第三段"
+	parts := splitTranslation(translated, 3)
+
+	if len(parts) != 3 {
+		t.Fatalf("段数应为 3, got %d", len(parts))
+	}
+	wants := []string{"你好世界", "第二段", "第三段"}
+	for i, w := range wants {
+		if parts[i] != w {
+			t.Errorf("parts[%d] = %q, want %q", i, parts[i], w)
+		}
+	}
+}
+
+func TestSplitTranslation_MarkerLost(t *testing.T) {
+	// SEGMENT_2 的标记被模型吞掉 → 第 2 段留空（回退原文）
+	translated := "<<<SEGMENT_1>>>\n你好\n\n<<<SEGMENT_3>>>\n第三段"
+	parts := splitTranslation(translated, 3)
+
+	if parts[0] != "你好" {
+		t.Errorf("parts[0] = %q, want 你好", parts[0])
+	}
+	if parts[1] != "" {
+		t.Errorf("parts[1] 应留空(分隔符丢失), got %q", parts[1])
+	}
+	if parts[2] != "第三段" {
+		t.Errorf("parts[2] = %q, want 第三段", parts[2])
+	}
+}
+
+func TestSplitTranslation_AllMarkersLost(t *testing.T) {
+	// 模型完全吞掉分隔符 → 全部留空，整体回退原文
+	translated := "你好\n第二段\n第三段"
+	parts := splitTranslation(translated, 3)
+
+	for i, p := range parts {
+		if p != "" {
+			t.Errorf("parts[%d] 应为空(全丢失), got %q", i, p)
+		}
+	}
+}
+
+func TestSplitTranslation_OutOfRangeIndex(t *testing.T) {
+	// 模型编错号（SEGMENT_9 超出范围）→ 忽略该段
+	translated := "<<<SEGMENT_1>>>\n你好\n\n<<<SEGMENT_9>>>\n乱编号"
+	parts := splitTranslation(translated, 2)
+
+	if parts[0] != "你好" {
+		t.Errorf("parts[0] = %q, want 你好", parts[0])
+	}
+	if parts[1] != "" {
+		t.Errorf("parts[1] 应留空(编号越界), got %q", parts[1])
+	}
+}
+
+func TestSplitTranslation_SinglePart(t *testing.T) {
+	parts := splitTranslation("just one", 1)
+	if len(parts) != 1 || parts[0] != "just one" {
+		t.Errorf("单段拆分错误: %v", parts)
+	}
+}

@@ -4,6 +4,8 @@ import (
 	"context"
 	"crypto/sha256"
 	"fmt"
+	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/ytc301/opensource-globalizer/internal/ai"
@@ -76,12 +78,13 @@ func (s *Service) TranslateFile(ctx context.Context, content string, langs []str
 		// 拆分翻译结果
 		translatedParts := splitTranslation(result.Translated, len(translatable))
 
-		// 重组 Markdown — translationMap 的 key 与 Reassemble 内部计数器对齐
+		// 重组 Markdown — translationMap 的 key 与 Reassemble 内部计数器对齐。
+		// 翻译为空的片段（分隔符丢失导致无法定位）跳过，保持原文。
 		translationMap := make(map[int]string)
 		reIdx := 0
 		for _, seg := range segments {
 			if s.parser.CanTranslate(seg) {
-				if reIdx < len(translatedParts) {
+				if reIdx < len(translatedParts) && strings.TrimSpace(translatedParts[reIdx]) != "" {
 					translationMap[reIdx] = translatedParts[reIdx]
 				}
 				reIdx++
@@ -110,40 +113,55 @@ func (s *Service) TranslateFile(ctx context.Context, content string, langs []str
 }
 
 // joinForTranslation 将多个文本拼接为一个翻译请求。
-// 使用特殊分隔符，在 Prompt 中明确要求 AI 保留。
-const segmentSeparator = "\n\n<<<SEGMENT_SEPARATOR>>>\n\n"
+// 使用带编号的分隔符 <<<SEGMENT_N>>>，比无名分隔符更鲁棒：
+// 即使模型吞掉部分标记，仍能按编号定位各段，避免内容错位。
+const segmentSeparatorPrefix = "<<<SEGMENT_"
+
+// segmentSeparatorRe 匹配带编号的分隔符。
+var segmentSeparatorRe = regexp.MustCompile(`<<<SEGMENT_(\d+)>>>`)
 
 func joinForTranslation(parts []string) string {
+	// 单段无需分隔符
+	if len(parts) == 1 {
+		return parts[0]
+	}
 	var sb strings.Builder
 	for i, part := range parts {
 		if i > 0 {
-			sb.WriteString(segmentSeparator)
+			sb.WriteString("\n\n")
 		}
+		sb.WriteString(fmt.Sprintf("%s%d>>>\n", segmentSeparatorPrefix, i+1))
 		sb.WriteString(part)
 	}
 	return sb.String()
 }
 
-// splitTranslation 将翻译结果按分隔符拆分回独立片段。
-// 如果分隔符全部丢失，返回整个翻译作为单段（回退模式）。
+// splitTranslation 将翻译结果按编号分隔符拆分回独立片段。
+// 返回固定长度 count 的切片；某个片段的分隔符丢失或编号越界时，
+// 对应位置留空字符串，由调用方回退为原文（不会错位）。
 func splitTranslation(translated string, count int) []string {
+	result := make([]string, count)
+
 	if count <= 1 {
-		return []string{strings.TrimSpace(translated)}
+		// 单片段无需分隔符；剥离可能残留的标记（旧缓存/模型多余输出）
+		result[0] = strings.TrimSpace(segmentSeparatorRe.ReplaceAllString(translated, ""))
+		return result
 	}
 
-	parts := strings.Split(translated, segmentSeparator)
-
-	// 清理每段的前后空白
-	result := make([]string, len(parts))
-	for i, p := range parts {
-		result[i] = strings.TrimSpace(p)
+	loc := segmentSeparatorRe.FindAllStringSubmatchIndex(translated, -1)
+	for i, m := range loc {
+		idx, err := strconv.Atoi(translated[m[2]:m[3]])
+		if err != nil || idx < 1 || idx > count {
+			continue
+		}
+		// 片段内容 = 本标记结束 → 下一标记开始（或结尾）
+		start := m[1]
+		end := len(translated)
+		if i+1 < len(loc) {
+			end = loc[i+1][0]
+		}
+		result[idx-1] = strings.TrimSpace(translated[start:end])
 	}
-
-	// 拆分数量不匹配 → 回退：整个翻译作为第一段，后面用原文
-	if len(result) != count {
-		return append(result[:1], result...) // 返回实际拆分结果，让调用方处理
-	}
-
 	return result
 }
 
