@@ -1,6 +1,6 @@
 # 🌍 OpenSource Globalizer AI
 
-> AI-powered localization and maintenance assistant for open-source projects
+> オープンソースプロジェクト向けのAIによるローカライゼーション&メンテナンスアシスタント
 
 [![Go Version](https://img.shields.io/badge/Go-1.23+-00ADD8?style=flat&logo=go)](https://go.dev/)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
@@ -8,58 +8,57 @@
 
 ---
 
-## What is OpenSource Globalizer AI?
+## OpenSource Globalizer AI とは？
 
-OpenSource Globalizer AI helps **open-source maintainers build truly global communities** by automating:
+OpenSource Globalizer AI は、以下の自動化によって**オープンソースメンテナが真にグローバルなコミュニティを構築する**のを支援します：
 
-- 📖 **README / documentation translation** — preserve Markdown structure across 10+ languages (via goldmark AST)
-- 🔄 **GitHub Action integration** — auto-translate on push, open a PR automatically
-- 🏷️ **Issue triage & translation** (V2) — detect language, auto-label, translate for non-native maintainers
-- 📦 **Release Notes generation** (V3) — produce multi-language release notes from changelogs
+- 📖 **README / ドキュメント翻訳** — goldmark AST により 10以上の言語で Markdown 構造を保持
+- 🔄 **GitHub Action 統合** — push 時に自動翻訳し、PR を自動作成
+- 🏷️ **Issue トリアージ & 翻訳** (V2) — 言語を検出し、自動ラベル付けして、非ネイティブメンテナ向けに翻訳
+- 📦 **リリースノート生成** (V3) — チェンジログから多言語リリースノートを生成
 
-All powered by AI. All integrated into the GitHub workflow you already use.
-
----
-
-## Why?
-
-Open-source is global by nature. Your users speak 中文, 日本語, 한국어, Español, Français, Deutsch…
-
-But most maintainers cannot manually translate every README, every Issue, every Release Note.
-
-> **OpenSource Globalizer AI reduces localization workload from hours → seconds.**
+すべてAI搭載。あなたがすでに使っている GitHub ワークフローに統合されています。
 
 ---
 
-## Features
+## なぜ必要？
 
-| Feature | Ver | Status | Description |
+オープンソースは本来、グローバルなものです。ユーザーは中文、日本語、한국어、Español、Français、Deutsch…を話します。しかし、ほとんどのメンテナはすべての README、すべての Issue、すべてのリリースノートを手動で翻訳することはできません。
+
+> **OpenSource Globalizer AI は、ローカライズ作業の時間を数時間 → 数秒に短縮します。**
+
+---
+
+## 機能
+
+| 機能 | Ver | ステータス | 説明 |
 |---------|-----|--------|-------------|
-| 📖 **README Translator** | v0.1 | ✅ Released | Translate README.md to multiple languages, goldmark AST preserves all formatting |
-| 🌐 **HTTP API** | v0.1 | ✅ Released | REST API via Gin, POST /api/v1/translate |
-| 🔄 **GitHub Action** | v0.2 | ✅ Released | Auto-translate on push, create PR automatically |
-| 🏷️ **Issue Assistant** | v0.3 | 📋 Planned | Detect issue language, auto-classify, translate |
-| 📦 **Release Assistant** | v0.4 | 📋 Planned | Generate multi-language release notes |
-| 🤖 **GitHub App** | v1.0 | 📋 Planned | Full bot integration with PR comments and review |
+| 📖 **README 翻訳機能** | v0.1 | ✅ リリース済み | README.md を複数言語に翻訳。goldmark AST がすべての書式を保持 |
+| 🌐 **HTTP API** | v0.1 | ✅ リリース済み | Gin による REST API、POST /api/v1/translate |
+| 🔄 **GitHub Action** | v0.2 | ✅ リリース済み | push 時に自動翻訳し、PR を自動作成 |
+| 🏷️ **Issue アシスタント** | v0.3 | 📋 予定 | Issue の言語検出、自動分類、翻訳 |
+| 📦 **リリースアシスタント** | v0.4 | 📋 予定 | 多言語リリースノートの生成 |
+| 🤖 **GitHub App** | v1.0 | 📋 予定 | PR コメントとレビューを含む完全なボット統合 |
 
 ---
 
-## Quick Start
+## クイックスタート
 
-> 📖 Full installation guide: **[INSTALL.md](INSTALL.md)** — 5-minute walkthrough.
+> 📖 完全なインストールガイド: **[INSTALL.md](INSTALL.md)** — 5分間のチュートリアル。
 
-### One-line install
+### ワンライン・インストール
 
 ```bash
 # Download a prebuilt binary (macOS/Linux/Windows), or:
 go install github.com/ytc301/opensource-globalizer/cmd/globalizer@latest
 ```
 
-### Docker (no Go environment required)
 
-> **Prerequisite**: `-v $(pwd):/workspace` mounts the current directory into the container, so **run it from the directory containing `README.md`**.
-> macOS Docker Desktop only shares `/Users` etc. by default — if you run from `/tmp` or another unshared path, the container won't see your files (`no such file or directory`).
-> Fix: Docker Desktop → Settings → Resources → File Sharing → add the directory, or use a path under `/Users/...`.
+### Docker（Go 環境不要）
+
+> **前提条件**: `-v $(pwd):/workspace` はカレントディレクトリをコンテナにマウントします。**`README.md` があるディレクトリから実行してください**。
+> macOS の Docker Desktop はデフォルトで `/Users` などを共有するだけです。`/tmp` など共有されていないパスから実行すると、コンテナからファイルが見えません（`no such file or directory`）。
+> 修正方法: Docker Desktop → Settings → Resources → File Sharing でディレクトリを追加するか、`/Users/...` の下のパスを使用してください。
 
 ```bash
 # Pull the image
@@ -82,7 +81,8 @@ docker run -d -p 8080:8080 -e OPENAI_API_KEY="sk-xxx" \
   ghcr.io/ytc301/opensource-globalizer-ai:v0.2.0 serve
 ```
 
-### Translate in one command
+
+### ワンコマンドで翻訳
 
 ```bash
 # Via environment variable
@@ -97,6 +97,7 @@ globalizer translate README.md --lang zh-CN -m gpt-5-mini \
   --base-url https://api.openai.com/v1 --api-key "sk-..."
 ```
 
+
 ```
 📖 Source: README.md
 🌍 Target languages: zh-CN, ja, ko, es
@@ -108,7 +109,8 @@ globalizer translate README.md --lang zh-CN -m gpt-5-mini \
 ✨ Done! 4 language versions generated
 ```
 
-### Start HTTP API
+
+### HTTP API を起動
 
 ```bash
 globalizer serve
@@ -117,9 +119,10 @@ globalizer serve
 #     -d '{"content":"# Hello","target_langs":["zh-CN"]}'
 ```
 
-### GitHub Action: auto-translate + auto-PR (recommended)
 
-No local environment needed — push `README.md` and a translation PR is created automatically:
+### GitHub Action: 自動翻訳 + 自動PR（推奨）
+
+ローカル環境は不要です。`README.md` を push すると、翻訳 PR が自動的に作成されます：
 
 ```yaml
 # .github/workflows/i18n.yml
@@ -148,18 +151,19 @@ jobs:
           base-url: https://api.openai.com/v1  # optional: API-compatible endpoint
 ```
 
-**Setup:**
 
-1. Add the `OPENAI_API_KEY` secret: repo **Settings → Secrets and variables → Actions**
-2. Enable PR creation: repo **Settings → Actions → General → Workflow permissions** → check *Allow GitHub Actions to create and approve pull requests*
-3. Push `README.md` → the Action auto-translates → a PR is created (title `🌍 i18n: Auto-translate README to ...`)
+**セットアップ:**
 
-> Supports OpenAI-compatible endpoints (e.g. DeepSeek) via the `base-url` and `model` inputs.
-> No API key for testing? Leave `api-key` empty and add `mock: true` to verify the flow end-to-end.
+1. `OPENAI_API_KEY` シークレットを追加: リポジトリ **Settings → Secrets and variables → Actions**
+2. PR 作成を有効化: リポジトリ **Settings → Actions → General → Workflow permissions** → *Allow GitHub Actions to create and approve pull requests* にチェック
+3. `README.md` を push → Action が自動翻訳 → PR が作成される（タイトル `🌍 i18n: Auto-translate README to ...`）
+
+> `base-url` と `model` 入力により、OpenAI 互換エンドポイント（例: DeepSeek）をサポートします。
+> テスト用の API キーがない場合？ `api-key` を空のままにして `mock: true` を追加すれば、エンドツーエンドでフローを検証できます。
 
 ---
 
-## Architecture
+## アーキテクチャ
 
 ```
                  GitHub
@@ -181,28 +185,29 @@ jobs:
         └───────────────────────┘
 ```
 
-See [docs/architecture.md](docs/architecture.md) for full design.
+
+詳細設計は [docs/architecture.md](docs/architecture.md) を参照してください。
 
 ---
 
-## Tech Stack
+## 技術スタック
 
-| Layer | Technology |
+| レイヤー | 技術 |
 |-------|-----------|
-| **Language** | Go 1.23+ |
+| **言語** | Go 1.23+ |
 | **CLI** | cobra |
 | **HTTP** | Gin |
-| **Markdown** | goldmark (AST-level parsing) |
+| **Markdown** | goldmark（ASTレベルでの解析） |
 | **ORM** | GORM + SQLite |
-| **AI** | OpenAI API (GPT-4o / Codex) |
-| **Config** | viper (env + YAML merge) |
-| **Logging** | zap (structured) |
+| **AI** | OpenAI API（GPT-4o / Codex） |
+| **設定** | viper（env + YAML マージ） |
+| **ロギング** | zap（構造化） |
 | **GitHub** | go-github, GitHub Actions |
-| **Deploy** | Docker, single-binary distribution |
+| **デプロイ** | Docker、シングルバイナリ配布 |
 
 ---
 
-## Project Structure
+## プロジェクト構成
 
 ```
 opensource-globalizer/
@@ -237,25 +242,26 @@ opensource-globalizer/
 └── go.mod
 ```
 
+
 ---
 
-## Version Roadmap
+## バージョンロードマップ
 
-| Version | Timeline | Deliverable | Status |
+| バージョン | 時期 | 成果物 | ステータス |
 |---------|----------|-------------|--------|
-| **v0.1.0** | 2026-07 (Week 1-2) | CLI README Translator + HTTP API | ✅ Released |
-| **v0.2.0** | 2026-07 (Week 3-4) | GitHub Action + Auto PR + Docker Image | ✅ Released |
-| **v0.3.0** | 2026-08 | Issue Language Detect + Translate + Label | 📋 Planned |
-| **v0.4.0** | 2026-09 | Release Notes Multi-language Generation | 📋 Planned |
-| **v1.0.0** | 2026-10 | GitHub App + Dashboard + Multi-AI-Provider | 📋 Planned |
+| **v0.1.0** | 2026-07 (Week 1-2) | CLI README Translator + HTTP API | ✅ リリース済み |
+| **v0.2.0** | 2026-07 (Week 3-4) | GitHub Action + Auto PR + Docker Image | ✅ リリース済み |
+| **v0.3.0** | 2026-08 | Issue 言語検出 + 翻訳 + ラベル付け | 📋 予定 |
+| **v0.4.0** | 2026-09 | 多言語リリースノート生成 | 📋 予定 |
+| **v1.0.0** | 2026-10 | GitHub App + Dashboard + マルチAIプロバイダー | 📋 予定 |
 
-See [docs/roadmap.md](docs/roadmap.md) for detailed milestones.
+詳細なマイルストーンは [docs/roadmap.md](docs/roadmap.md) を参照してください。
 
 ---
 
-## Contributing
+## コントリビューション
 
-Contributions welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) first.
+コントリビューション歓迎です！ まず [CONTRIBUTING.md](CONTRIBUTING.md) をお読みください。
 
 ```bash
 git clone https://github.com/ytc301/opensource-globalizer.git
@@ -264,8 +270,9 @@ make test
 make build
 ```
 
+
 ---
 
-## License
+## ライセンス
 
 MIT © 2026 OpenSource Globalizer AI Contributors
