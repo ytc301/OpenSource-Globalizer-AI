@@ -37,6 +37,7 @@ jobs:
           api-key: ${{ secrets.OPENAI_API_KEY }}
           languages: ${{ inputs.languages || 'zh-CN,ja' }}
           mock: ${{ inputs.mock && 'true' || 'false' }}
+          model: ${{ vars.GLOBALIZER_MODEL || 'gpt-4o' }}
 
       - name: Show generated files
         run: ls -la docs/ 2>/dev/null || echo "No translation output"
