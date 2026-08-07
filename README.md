@@ -39,7 +39,7 @@ But most maintainers cannot manually translate every README, every Issue, every 
 |---------|-----|--------|-------------|
 | 📖 **README Translator** | v0.1 | ✅ Released | Translate README.md to multiple languages, goldmark AST preserves all formatting |
 | 🌐 **HTTP API** | v0.1 | ✅ Released | REST API via Gin, POST /api/v1/translate |
-| 🔄 **GitHub Action** | v0.2 | 🚧 In Progress | Auto-translate on push, create PR automatically |
+| 🔄 **GitHub Action** | v0.2 | ✅ Released | Auto-translate on push, create PR automatically |
 | 🏷️ **Issue Assistant** | v0.3 | 📋 Planned | Detect issue language, auto-classify, translate |
 | 📦 **Release Assistant** | v0.4 | 📋 Planned | Generate multi-language release notes |
 | 🤖 **GitHub App** | v1.0 | 📋 Planned | Full bot integration with PR comments and review |
@@ -206,7 +206,7 @@ opensource-globalizer/
 | Version | Timeline | Deliverable | Status |
 |---------|----------|-------------|--------|
 | **v0.1.0** | 2026-07 (Week 1-2) | CLI README Translator + HTTP API | ✅ Released |
-| **v0.2.0** | 2026-07 (Week 3-4) | GitHub Action + Auto PR + Docker Image | 🚧 In Progress |
+| **v0.2.0** | 2026-07 (Week 3-4) | GitHub Action + Auto PR + Docker Image | ✅ Released |
 | **v0.3.0** | 2026-08 | Issue Language Detect + Translate + Label | 📋 Planned |
 | **v0.4.0** | 2026-09 | Release Notes Multi-language Generation | 📋 Planned |
 | **v1.0.0** | 2026-10 | GitHub App + Dashboard + Multi-AI-Provider | 📋 Planned |
