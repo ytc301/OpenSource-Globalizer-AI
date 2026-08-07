@@ -59,17 +59,27 @@ go install github.com/ytc301/opensource-globalizer/cmd/globalizer@latest
 
 ### Docker 运行（无需 Go 环境）
 
+> **前提**：`-v $(pwd):/workspace` 会把当前目录挂载进容器，所以**必须在 README.md 所在目录执行**。
+> macOS Docker Desktop 默认只共享 `/Users` 等目录 — 若在 `/tmp` 等非共享目录执行，容器内看不到文件（报 `no such file or directory`）。
+> 解决：在 Docker Desktop → Settings → Resources → File Sharing 中添加该目录，或改用 `/Users/...` 下的路径。
+
 ```bash
 # 拉取镜像
 docker pull ghcr.io/ytc301/opensource-globalizer:v0.2.0
 
-# CLI 模式：翻译当前目录 README
+# CLI 模式：翻译当前目录 README（需在 README.md 所在目录执行）
 docker run --rm -e OPENAI_API_KEY="sk-xxx" \
   -v $(pwd):/workspace -w /workspace \
   ghcr.io/ytc301/opensource-globalizer:v0.2.0 \
   translate README.md --lang zh-CN,ja
 
-# HTTP API 模式
+# CLI 模式：自定义 API 地址和模型
+docker run --rm -e OPENAI_API_KEY="sk-xxx" \
+  -v $(pwd):/workspace -w /workspace \
+  ghcr.io/ytc301/opensource-globalizer:v0.2.0 \
+  translate README.md --lang zh-CN --base-url https://api.example.com/v1 -m gpt-5-mini
+
+# HTTP API 模式（无需挂载）
 docker run -d -p 8080:8080 -e OPENAI_API_KEY="sk-xxx" \
   ghcr.io/ytc301/opensource-globalizer:v0.2.0 serve
 ```
