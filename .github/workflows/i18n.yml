@@ -42,14 +42,16 @@ jobs:
           model: ${{ vars.GLOBALIZER_MODEL || 'gpt-4o' }}
           # 自定义 API 兼容端点: 仓库 Settings → Variables 配置 OPENAI_BASE_URL
           base-url: ${{ vars.OPENAI_BASE_URL || 'https://api.openai.com/v1' }}
+          # 输出到仓库根目录 → 生成 README.zh-CN.md / README.ja.md (与多语言 README 方案一致)
+          output-dir: .
 
       - name: Show generated files
-        run: ls -la docs/ 2>/dev/null || echo "No translation output"
+        run: ls -la README.*.md 2>/dev/null || echo "No translation output"
 
-      # 翻译产物在 .gitignore 中 (docs/README.*.md), 需强制添加才能进入 PR
-      - name: Force add translation files
+      # 翻译产物输出到仓库根目录 (README.<lang>.md), 已跟踪, 直接 add
+      - name: Stage translation files
         run: |
-          git add -f docs/README.*.md
+          git add README.*.md
           git status --short
 
       # 真实模式: 翻译有变更时自动创建 PR
