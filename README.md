@@ -127,6 +127,7 @@ name: AI Translation
 
 on:
   push:
+    branches: [main]       # tag pushes are excluded to keep PR creation reliable
     paths:
       - "README.md"
   workflow_dispatch:      # optional manual trigger
@@ -146,7 +147,10 @@ jobs:
           languages: zh-CN,ja,ko
           model: gpt-4o                        # optional: custom model
           base-url: https://api.openai.com/v1  # optional: API-compatible endpoint
+          output-dir: .                        # write README.<lang>.md at repo root
 ```
+
+Translated files are written to the repo root as `README.<lang>.md` (e.g. `README.zh-CN.md`, `README.ja.md`).
 
 **Setup:**
 
@@ -156,6 +160,7 @@ jobs:
 
 > Supports OpenAI-compatible endpoints (e.g. DeepSeek) via the `base-url` and `model` inputs.
 > No API key for testing? Leave `api-key` empty and add `mock: true` to verify the flow end-to-end.
+> Example workflow lives at [.github/workflows/i18n.yml](.github/workflows/i18n.yml).
 
 ---
 
