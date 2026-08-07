@@ -121,6 +121,10 @@ const segmentSeparatorPrefix = "<<<SEGMENT_"
 var segmentSeparatorRe = regexp.MustCompile(`<<<SEGMENT_(\d+)>>>`)
 
 func joinForTranslation(parts []string) string {
+	// 单段无需分隔符
+	if len(parts) == 1 {
+		return parts[0]
+	}
 	var sb strings.Builder
 	for i, part := range parts {
 		if i > 0 {
@@ -139,8 +143,8 @@ func splitTranslation(translated string, count int) []string {
 	result := make([]string, count)
 
 	if count <= 1 {
-		// 单片段无需分隔符
-		result[0] = strings.TrimSpace(translated)
+		// 单片段无需分隔符；剥离可能残留的标记（旧缓存/模型多余输出）
+		result[0] = strings.TrimSpace(segmentSeparatorRe.ReplaceAllString(translated, ""))
 		return result
 	}
 
