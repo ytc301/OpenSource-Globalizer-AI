@@ -6,7 +6,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var version = "0.1.0"
+// version 可在构建时通过 -ldflags "-X main.version=vX.Y.Z" 覆盖
+var version = "0.2.0"
 
 var versionCmd = &cobra.Command{
 	Use:   "version",
