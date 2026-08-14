@@ -175,3 +175,23 @@ func hashContent(content string) string {
 func (s *Service) Segments(content string) []markdown.Segment {
 	return s.parser.Parse(content)
 }
+
+// DetectLanguage 检测 Issue 文本的语言。
+// 返回 ISO 639-1 语言代码 (e.g. "en", "zh", "ja", "ko")。
+func (s *Service) DetectLanguage(ctx context.Context, text string) (string, error) {
+	lang, err := s.provider.DetectLanguage(ctx, text)
+	if err != nil {
+		return "", fmt.Errorf("detect issue language: %w", err)
+	}
+	return lang, nil
+}
+
+// ClassifyIssue 对 Issue 进行分类并生成英文摘要。
+// 返回语言、类型 (bug/feature/question/documentation)、英文摘要和置信度。
+func (s *Service) ClassifyIssue(ctx context.Context, title, body string) (*ai.IssueClassifyResult, error) {
+	result, err := s.provider.ClassifyIssue(ctx, title, body)
+	if err != nil {
+		return nil, fmt.Errorf("classify issue: %w", err)
+	}
+	return result, nil
+}

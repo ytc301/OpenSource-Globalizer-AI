@@ -2,6 +2,7 @@ package translator
 
 import (
 	"context"
+	"fmt"
 	"strings"
 	"testing"
 
@@ -203,5 +204,101 @@ func TestSplitTranslation_SinglePart(t *testing.T) {
 	parts := splitTranslation("just one", 1)
 	if len(parts) != 1 || parts[0] != "just one" {
 		t.Errorf("单段拆分错误: %v", parts)
+	}
+}
+
+func TestDetectLanguage(t *testing.T) {
+	provider := ai.NewMockProvider()
+	svc := NewService(provider, nil, newTestLogger())
+
+	lang, err := svc.DetectLanguage(context.Background(), "安装失败 Ubuntu 24")
+	if err != nil {
+		t.Fatalf("语言检测失败: %v", err)
+	}
+	if lang != "en" {
+		t.Errorf("Mock 应返回 en, 实际 %q", lang)
+	}
+}
+
+func TestDetectLanguage_CustomResult(t *testing.T) {
+	provider := ai.NewMockProvider()
+	provider.DetectLanguageFn = func(ctx context.Context, text string) (string, error) {
+		return "zh", nil
+	}
+	svc := NewService(provider, nil, newTestLogger())
+
+	lang, err := svc.DetectLanguage(context.Background(), "安装失败 Ubuntu 24")
+	if err != nil {
+		t.Fatalf("语言检测失败: %v", err)
+	}
+	if lang != "zh" {
+		t.Errorf("期望 zh, 实际 %q", lang)
+	}
+}
+
+func TestDetectLanguage_Error(t *testing.T) {
+	provider := ai.NewMockProvider()
+	provider.DetectLanguageFn = func(ctx context.Context, text string) (string, error) {
+		return "", fmt.Errorf("ai down")
+	}
+	svc := NewService(provider, nil, newTestLogger())
+
+	if _, err := svc.DetectLanguage(context.Background(), "some text"); err == nil {
+		t.Error("AI 错误应向上传播")
+	}
+}
+
+func TestClassifyIssue(t *testing.T) {
+	provider := ai.NewMockProvider()
+	svc := NewService(provider, nil, newTestLogger())
+
+	result, err := svc.ClassifyIssue(context.Background(), "安装失败 Ubuntu 24", "在 Ubuntu 24.04 上 make install 崩溃")
+	if err != nil {
+		t.Fatalf("Issue 分类失败: %v", err)
+	}
+	if result.Type != "bug" {
+		t.Errorf("Mock 应分类为 bug, 实际 %q", result.Type)
+	}
+	if result.Summary == "" {
+		t.Error("英文摘要不应为空")
+	}
+	if result.Language == "" {
+		t.Error("语言检测结果不应为空")
+	}
+}
+
+func TestClassifyIssue_CustomResult(t *testing.T) {
+	provider := ai.NewMockProvider()
+	provider.ClassifyIssueFn = func(ctx context.Context, title, body string) (*ai.IssueClassifyResult, error) {
+		return &ai.IssueClassifyResult{
+			Language:   "zh",
+			Type:       "feature",
+			Summary:    "Support dark mode",
+			Confidence: 0.85,
+		}, nil
+	}
+	svc := NewService(provider, nil, newTestLogger())
+
+	result, err := svc.ClassifyIssue(context.Background(), "希望支持深色模式", "能否增加深色主题")
+	if err != nil {
+		t.Fatalf("Issue 分类失败: %v", err)
+	}
+	if result.Type != "feature" || result.Language != "zh" {
+		t.Errorf("自定义分类结果错误: %+v", result)
+	}
+	if result.Summary != "Support dark mode" {
+		t.Errorf("英文摘要错误: %q", result.Summary)
+	}
+}
+
+func TestClassifyIssue_Error(t *testing.T) {
+	provider := ai.NewMockProvider()
+	provider.ClassifyIssueFn = func(ctx context.Context, title, body string) (*ai.IssueClassifyResult, error) {
+		return nil, fmt.Errorf("classify failed")
+	}
+	svc := NewService(provider, nil, newTestLogger())
+
+	if _, err := svc.ClassifyIssue(context.Background(), "title", "body"); err == nil {
+		t.Error("分类错误应向上传播")
 	}
 }
