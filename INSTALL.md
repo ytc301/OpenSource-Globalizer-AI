@@ -275,19 +275,32 @@ Issue Assistant 在 `serve` 模式下暴露 `POST /webhook` 端点，自动检�
 
 ### 1. 配置环境变量
 
-需同时配置两个变量，否则 `serve` 不注册 `/webhook` 端点：
+需同时配置 GitHub token 与 webhook 密钥，否则 `serve` 不注册 `/webhook` 端点：
 
 ```bash
 export GITHUB_TOKEN="ghp_xxx"                 # 具有 issues:write 权限的 GitHub PAT
 export GLOBALIZER_WEBHOOK_SECRET="my-secret"  # webhook HMAC SHA-256 密钥
 ```
 
+还需配置 AI 模型（语言检测 / 分类）：
+
+```bash
+export OPENAI_API_KEY="sk-xxx"                    # AI API Key
+export OPENAI_BASE_URL="https://api.openai.com/v1" # 默认 OpenAI；DeepSeek 用 https://api.deepseek.com/v1
+export OPENAI_ISSUE_MODEL="gpt-4o-mini"           # Issue 检测/分类模型；DeepSeek 用 deepseek-v4-flash
+```
+
 > 也可写入 `.globalizer.yaml`：
 > ```yaml
+> openai:
+>   base_url: https://api.deepseek.com/v1
+>   issue_model: deepseek-v4-flash
 > github:
 >   token: ghp_xxx
 >   webhook_secret: my-secret
 > ```
+>
+> ⚠️ 使用 DeepSeek 等 OpenAI 兼容端点时，**必须**通过 `OPENAI_ISSUE_MODEL`（或 `issue_model`）指定模型名，否则默认 `gpt-4o-mini` 会报 `model_not_found`。
 
 ### 2. 启动服务
 

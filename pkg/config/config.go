@@ -23,6 +23,9 @@ type Config struct {
 type OpenAIConfig struct {
 	APIKey  string `mapstructure:"api_key"`
 	BaseURL string `mapstructure:"base_url"`
+	// IssueModel Issue 检测/分类模型（空则用默认 gpt-4o-mini）。
+	// 使用 OpenAI 兼容端点（如 DeepSeek）时需显式指定，例如 deepseek-v4-flash。
+	IssueModel string `mapstructure:"issue_model"`
 }
 
 // PreserveConfig 翻译保留规则。
@@ -89,6 +92,7 @@ func Load(cfgFile string) (*Config, error) {
 	v.SetEnvPrefix("GLOBALIZER")
 	v.BindEnv("openai.api_key", "OPENAI_API_KEY")
 	v.BindEnv("openai.base_url", "OPENAI_BASE_URL")
+	v.BindEnv("openai.issue_model", "OPENAI_ISSUE_MODEL")
 	v.BindEnv("db_path", "GLOBALIZER_DB_PATH")
 	v.BindEnv("github.token", "GITHUB_TOKEN")
 	v.BindEnv("github.webhook_secret", "GLOBALIZER_WEBHOOK_SECRET")

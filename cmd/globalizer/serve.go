@@ -35,6 +35,7 @@ func runServe(cmd *cobra.Command, args []string) error {
 	provider := ai.NewOpenAI(ai.OpenAIConfig{
 		APIKey:  cfg.EffectiveAPIKey(),
 		BaseURL: cfg.OpenAI.BaseURL,
+		Model:   cfg.OpenAI.IssueModel,
 	})
 
 	var st *store.Store

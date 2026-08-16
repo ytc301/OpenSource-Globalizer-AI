@@ -201,6 +201,7 @@ globalizer serve                              # → POST /webhook が登録さ�
 
 > WebhookリクエストはHMAC SHA-256（`X-Hub-Signature-256`）で検証され、無効な署名は`401`で拒否されます。
 > 設定は`.globalizer.yaml`の`github.token` / `github.webhook_secret`、または環境変数`GITHUB_TOKEN` / `GLOBALIZER_WEBHOOK_SECRET`にあります。
+> 検出/分類モデルはデフォルト`gpt-4o-mini`です。DeepSeekなどのエンドポイントでは`OPENAI_ISSUE_MODEL`（例：`deepseek-v4-flash`）で上書きしてください。
 
 ---
 

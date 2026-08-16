@@ -200,6 +200,7 @@ globalizer serve                              # → 注册 POST /webhook
 
 > Webhook 请求通过 HMAC SHA-256（`X-Hub-Signature-256`）校验；无效签名以 `401` 拒绝。
 > 配置位于 `.globalizer.yaml` 的 `github.token` / `github.webhook_secret`，或环境变量 `GITHUB_TOKEN` / `GLOBALIZER_WEBHOOK_SECRET`。
+> 检测/分类模型默认 `gpt-4o-mini`；DeepSeek 等端点需设置 `OPENAI_ISSUE_MODEL`（如 `deepseek-v4-flash`）覆盖。
 
 ---
 

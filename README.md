@@ -197,6 +197,7 @@ When a non-English Issue is opened, the assistant automatically:
 
 > Webhook requests are verified with HMAC SHA-256 (`X-Hub-Signature-256`); invalid signatures are rejected with `401`.
 > Config lives under `github.token` / `github.webhook_secret` in `.globalizer.yaml`, or the `GITHUB_TOKEN` / `GLOBALIZER_WEBHOOK_SECRET` env vars.
+> The detection/classification model defaults to `gpt-4o-mini`; set `OPENAI_ISSUE_MODEL` (e.g. `deepseek-v4-flash` for DeepSeek) to override it.
 
 ---
 
