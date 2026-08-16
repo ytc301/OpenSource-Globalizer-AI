@@ -9,7 +9,7 @@ import (
 )
 
 // Version 服务版本号（构建时可用 -ldflags 覆盖）。
-var Version = "0.2.0"
+var Version = "0.3.0"
 
 // Handler HTTP API 处理器。
 type Handler struct {
