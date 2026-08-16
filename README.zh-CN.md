@@ -62,23 +62,23 @@ go install github.com/ytc301/opensource-globalizer/cmd/globalizer@latest
 
 ```bash
 # Pull the image
-docker pull ghcr.io/ytc301/opensource-globalizer-ai:v0.2.0
+docker pull ghcr.io/ytc301/opensource-globalizer-ai:v0.3.0
 
 # CLI mode: translate the README in the current directory (run from README.md's directory)
 docker run --rm -e OPENAI_API_KEY="sk-xxx" \
   -v $(pwd):/workspace -w /workspace \
-  ghcr.io/ytc301/opensource-globalizer-ai:v0.2.0 \
+  ghcr.io/ytc301/opensource-globalizer-ai:v0.3.0 \
   translate README.md --lang zh-CN,ja
 
 # CLI mode: custom API endpoint and model
 docker run --rm -e OPENAI_API_KEY="sk-xxx" \
   -v $(pwd):/workspace -w /workspace \
-  ghcr.io/ytc301/opensource-globalizer-ai:v0.2.0 \
+  ghcr.io/ytc301/opensource-globalizer-ai:v0.3.0 \
   translate README.md --lang zh-CN --base-url https://api.example.com/v1 -m gpt-5-mini
 
 # HTTP API mode (no mount needed)
 docker run -d -p 8080:8080 -e OPENAI_API_KEY="sk-xxx" \
-  ghcr.io/ytc301/opensource-globalizer-ai:v0.2.0 serve
+  ghcr.io/ytc301/opensource-globalizer-ai:v0.3.0 serve
 ```
 
 
