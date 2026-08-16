@@ -37,7 +37,7 @@ OpenSource Globalizer AIは、以下の自動化により**オープンソース
 | 📖 **README Translator** | v0.1 | ✅ リリース済み | README.mdを複数言語へ翻訳。goldmark ASTがすべての書式を保持 |
 | 🌐 **HTTP API** | v0.1 | ✅ リリース済み | GinによるREST API、POST /api/v1/translate |
 | 🔄 **GitHub Action** | v0.2 | ✅ リリース済み | push時に自動翻訳、PRを自動作成 |
-| 🏷️ **Issue Assistant** | v0.3 | 📋 予定 | Issueの言語を検出し、自動分類・翻訳 |
+| 🏷️ **Issue Assistant** | v0.3 | ✅ リリース済み | Issueの言語を検出し、自動分類・自動返信＋ラベル付け |
 | 📦 **Release Assistant** | v0.4 | 📋 予定 | 多言語リリースノートを生成 |
 | 🤖 **GitHub App** | v1.0 | 📋 予定 | PRコメントとレビューを含む完全なボット統合 |
 
@@ -166,6 +166,42 @@ jobs:
 > テスト用のAPIキーがない場合？ `api-key`を空のままにして`mock: true`を追加すると、フローをエンドツーエンドで検証できます。
 > サンプルワークフローは[.github/workflows/i18n.yml](.github/workflows/i18n.yml)にあります。
 
+### Issue Assistant：自動検出・分類・返信・ラベル付け（v0.3）
+
+`serve`モードはGitHub webhookエンドポイントを公開し、Issueをエンドツーエンドで自動処理します：
+
+```bash
+export GITHUB_TOKEN="ghp_xxx"                 # issues:write スコープのGitHub PAT
+export GLOBALIZER_WEBHOOK_SECRET="secret"     # webhook HMAC SHA-256 シークレット
+globalizer serve                              # → POST /webhook が登録される
+```
+
+**セットアップ：**
+
+1. webhookを追加：リポジトリの**Settings → Webhooks → Add webhook**
+   - **Payload URL**：`https://your-server/webhook`
+   - **Content type**：`application/json`
+   - **Secret**：`GLOBALIZER_WEBHOOK_SECRET`と同じ値
+   - **Events**：**Issues**（`opened`、`edited`）
+2. `GITHUB_TOKEN`を設定（リポジトリの**Settings → Secrets and variables → Actions**、またはサーバー環境変数）、`issues:write`スコープが必要
+
+英語以外のIssueが開かれると、アシスタントは自動的に：
+
+1. 言語を**検出** → `lang:xx`ラベルを追加
+2. **分類** → `type:bug` / `type:feature` / `type:question` / `type:documentation`ラベルを追加
+3. 最初のコメントとして英語サマリーを**投稿**：
+
+```
+## 🌐 AI Translation
+
+**言語:** zh-CN
+
+**摘要:** Install fails on Ubuntu 24.04
+```
+
+> WebhookリクエストはHMAC SHA-256（`X-Hub-Signature-256`）で検証され、無効な署名は`401`で拒否されます。
+> 設定は`.globalizer.yaml`の`github.token` / `github.webhook_secret`、または環境変数`GITHUB_TOKEN` / `GLOBALIZER_WEBHOOK_SECRET`にあります。
+
 ---
 
 ## アーキテクチャ
@@ -256,7 +292,7 @@ opensource-globalizer/
 |---------|----------|-------------|--------|
 | **v0.1.0** | 2026-07（第1〜2週） | CLI README翻訳 + HTTP API | ✅ リリース済み |
 | **v0.2.0** | 2026-07（第3〜4週） | GitHub Action + 自動PR + Dockerイメージ | ✅ リリース済み |
-| **v0.3.0** | 2026-08 | Issue言語検出 + 翻訳 + ラベル | 📋 予定 |
+| **v0.3.0** | 2026-08 | Issue言語検出 + 翻訳 + ラベル | ✅ リリース済み |
 | **v0.4.0** | 2026-09 | 多言語リリースノート生成 | 📋 予定 |
 | **v1.0.0** | 2026-10 | GitHub App + ダッシュボード + マルチAIプロバイダー | 📋 予定 |
 

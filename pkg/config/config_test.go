@@ -159,3 +159,43 @@ func TestLoad_EnvVarOverrides(t *testing.T) {
 		t.Errorf("OPENAI_BASE_URL 应生效, 实际 %q", cfg.OpenAI.BaseURL)
 	}
 }
+
+func TestLoad_GitHubConfigYAML(t *testing.T) {
+	tmpDir := t.TempDir()
+	cfgPath := filepath.Join(tmpDir, "gh.yaml")
+	yaml := `
+github:
+  token: ghp-token-123
+  webhook_secret: my-webhook-secret
+`
+	if err := os.WriteFile(cfgPath, []byte(yaml), 0644); err != nil {
+		t.Fatalf("写入测试配置: %v", err)
+	}
+
+	cfg, err := Load(cfgPath)
+	if err != nil {
+		t.Fatalf("加载配置失败: %v", err)
+	}
+	if cfg.GitHub.Token != "ghp-token-123" {
+		t.Errorf("GitHub.Token 错误: %q", cfg.GitHub.Token)
+	}
+	if cfg.GitHub.WebhookSecret != "my-webhook-secret" {
+		t.Errorf("GitHub.WebhookSecret 错误: %q", cfg.GitHub.WebhookSecret)
+	}
+}
+
+func TestLoad_GitHubConfigEnv(t *testing.T) {
+	t.Setenv("GITHUB_TOKEN", "ghp-env-token")
+	t.Setenv("GLOBALIZER_WEBHOOK_SECRET", "env-secret")
+
+	cfg, err := Load(t.TempDir() + "/nonexistent.yaml")
+	if err != nil {
+		t.Fatalf("加载失败: %v", err)
+	}
+	if cfg.GitHub.Token != "ghp-env-token" {
+		t.Errorf("GITHUB_TOKEN 应生效, 实际 %q", cfg.GitHub.Token)
+	}
+	if cfg.GitHub.WebhookSecret != "env-secret" {
+		t.Errorf("GLOBALIZER_WEBHOOK_SECRET 应生效, 实际 %q", cfg.GitHub.WebhookSecret)
+	}
+}

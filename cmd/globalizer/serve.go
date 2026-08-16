@@ -5,6 +5,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/ytc301/opensource-globalizer/internal/ai"
+	"github.com/ytc301/opensource-globalizer/internal/github"
 	"github.com/ytc301/opensource-globalizer/internal/handler"
 	"github.com/ytc301/opensource-globalizer/internal/store"
 	"github.com/ytc301/opensource-globalizer/internal/translator"
@@ -49,6 +50,16 @@ func runServe(cmd *cobra.Command, args []string) error {
 	svc := translator.NewService(provider, st, logger)
 	h := handler.NewHandler(svc, logger)
 	router := h.SetupRouter()
+
+	// 注册 Issue webhook 端点（需同时配置 GitHub token + webhook secret）
+	if cfg.GitHub.Token != "" && cfg.GitHub.WebhookSecret != "" {
+		ghClient := github.NewRealClient(cfg.GitHub.Token)
+		wh := handler.NewWebhookHandler(svc, ghClient, cfg.GitHub.WebhookSecret, logger)
+		router.POST("/webhook", wh.Handle)
+		logger.Info("已启用 Issue webhook 端点", zap.String("path", "/webhook"))
+	} else {
+		logger.Info("未配置 GITHUB_TOKEN / webhook secret，跳过 Issue webhook 端点")
+	}
 
 	addr := fmt.Sprintf(":%d", cfg.Server.Port)
 	logger.Info("启动 HTTP 服务", zap.String("addr", addr))

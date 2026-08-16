@@ -16,6 +16,7 @@ type Config struct {
 	OpenAI    OpenAIConfig   `mapstructure:"openai"`
 	Preserve  PreserveConfig `mapstructure:"preserve"`
 	Server    ServerConfig   `mapstructure:"server"`
+	GitHub    GitHubConfig   `mapstructure:"github"`
 }
 
 // OpenAIConfig OpenAI API 配置。
@@ -38,6 +39,14 @@ type ServerConfig struct {
 	Mode string `mapstructure:"mode"`
 }
 
+// GitHubConfig GitHub 集成配置（Issue Assistant 使用）。
+type GitHubConfig struct {
+	// Token GitHub 个人访问令牌，用于调用 REST API（发评论 / 加标签）。
+	Token string `mapstructure:"token"`
+	// WebhookSecret webhook HMAC SHA-256 签名密钥。
+	WebhookSecret string `mapstructure:"webhook_secret"`
+}
+
 // DefaultConfig 返回默认配置。
 func DefaultConfig() *Config {
 	return &Config{
@@ -58,6 +67,7 @@ func DefaultConfig() *Config {
 			Port: 8080,
 			Mode: "debug",
 		},
+		GitHub: GitHubConfig{},
 	}
 }
 
@@ -80,6 +90,8 @@ func Load(cfgFile string) (*Config, error) {
 	v.BindEnv("openai.api_key", "OPENAI_API_KEY")
 	v.BindEnv("openai.base_url", "OPENAI_BASE_URL")
 	v.BindEnv("db_path", "GLOBALIZER_DB_PATH")
+	v.BindEnv("github.token", "GITHUB_TOKEN")
+	v.BindEnv("github.webhook_secret", "GLOBALIZER_WEBHOOK_SECRET")
 	v.AutomaticEnv()
 
 	if err := v.ReadInConfig(); err != nil {

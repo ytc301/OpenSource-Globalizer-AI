@@ -12,6 +12,12 @@ type Client interface {
 
 	// GetFile 获取仓库文件内容。
 	GetFile(ctx context.Context, owner, repo, path, ref string) (string, error)
+
+	// CreateIssueComment 在 Issue 上发布评论。
+	CreateIssueComment(ctx context.Context, owner, repo string, number int, body string) error
+
+	// AddIssueLabels 为 Issue 添加标签。
+	AddIssueLabels(ctx context.Context, owner, repo string, number int, labels []string) error
 }
 
 // CreatePROptions 创建 PR 的配置。
@@ -39,8 +45,10 @@ type PullRequest struct {
 
 // MockClient 用于测试的 GitHub 客户端。
 type MockClient struct {
-	CreatePRFn func(ctx context.Context, opts CreatePROptions) (*PullRequest, error)
-	GetFileFn  func(ctx context.Context, owner, repo, path, ref string) (string, error)
+	CreatePRFn           func(ctx context.Context, opts CreatePROptions) (*PullRequest, error)
+	GetFileFn            func(ctx context.Context, owner, repo, path, ref string) (string, error)
+	CreateIssueCommentFn func(ctx context.Context, owner, repo string, number int, body string) error
+	AddIssueLabelsFn     func(ctx context.Context, owner, repo string, number int, labels []string) error
 }
 
 func NewMockClient() *MockClient {
@@ -50,6 +58,12 @@ func NewMockClient() *MockClient {
 		},
 		GetFileFn: func(ctx context.Context, owner, repo, path, ref string) (string, error) {
 			return "# Mock README\n\nThis is a mock file.", nil
+		},
+		CreateIssueCommentFn: func(ctx context.Context, owner, repo string, number int, body string) error {
+			return nil
+		},
+		AddIssueLabelsFn: func(ctx context.Context, owner, repo string, number int, labels []string) error {
+			return nil
 		},
 	}
 }
@@ -66,4 +80,18 @@ func (m *MockClient) GetFile(ctx context.Context, owner, repo, path, ref string)
 		return m.GetFileFn(ctx, owner, repo, path, ref)
 	}
 	return "", fmt.Errorf("GetFileFn not set")
+}
+
+func (m *MockClient) CreateIssueComment(ctx context.Context, owner, repo string, number int, body string) error {
+	if m.CreateIssueCommentFn != nil {
+		return m.CreateIssueCommentFn(ctx, owner, repo, number, body)
+	}
+	return fmt.Errorf("CreateIssueCommentFn not set")
+}
+
+func (m *MockClient) AddIssueLabels(ctx context.Context, owner, repo string, number int, labels []string) error {
+	if m.AddIssueLabelsFn != nil {
+		return m.AddIssueLabelsFn(ctx, owner, repo, number, labels)
+	}
+	return fmt.Errorf("AddIssueLabelsFn not set")
 }

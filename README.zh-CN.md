@@ -36,7 +36,7 @@ OpenSource Globalizer AI 通过自动化以下工作，帮助**开源维护者�
 | 📖 **README 翻译器** | v0.1 | ✅ 已发布 | 将 README.md 翻译为多种语言，goldmark AST 保留所有格式 |
 | 🌐 **HTTP API** | v0.1 | ✅ 已发布 | 基于 Gin 的 REST API，POST /api/v1/translate |
 | 🔄 **GitHub Action** | v0.2 | ✅ 已发布 | push 时自动翻译，自动创建 PR |
-| 🏷️ **Issue 助手** | v0.3 | 📋 规划中 | 检测 Issue 语言，自动分类，翻译 |
+| 🏷️ **Issue 助手** | v0.3 | ✅ 已发布 | 检测 Issue 语言，自动分类，自动回复 + 标签 |
 | 📦 **发布助手** | v0.4 | 📋 规划中 | 生成多语言发布说明 |
 | 🤖 **GitHub App** | v1.0 | 📋 规划中 | 完整的机器人集成，支持 PR 评论和审查 |
 
@@ -165,6 +165,42 @@ jobs:
 > 没有 API 密钥用于测试？将 `api-key` 留空并添加 `mock: true` 即可端到端验证流程。
 > 示例工作流位于 [.github/workflows/i18n.yml](.github/workflows/i18n.yml)。
 
+### Issue 助手：自动检测、分类、回复与标签（v0.3）
+
+`serve` 模式暴露一个 GitHub webhook 端点，端到端自动处理 Issue：
+
+```bash
+export GITHUB_TOKEN="ghp_xxx"                 # 具有 issues:write 权限的 GitHub PAT
+export GLOBALIZER_WEBHOOK_SECRET="secret"     # webhook HMAC SHA-256 密钥
+globalizer serve                              # → 注册 POST /webhook
+```
+
+**设置方法：**
+
+1. 添加 webhook：仓库 **Settings → Webhooks → Add webhook**
+   - **Payload URL**：`https://your-server/webhook`
+   - **Content type**：`application/json`
+   - **Secret**：与 `GLOBALIZER_WEBHOOK_SECRET` 相同的值
+   - **Events**：**Issues**（`opened`、`edited`）
+2. 设置 `GITHUB_TOKEN`（仓库 **Settings → Secrets and variables → Actions**，或服务器环境变量），需 `issues:write` 权限
+
+当非英语 Issue 被打开时，助手会自动：
+
+1. **检测**语言 → 添加 `lang:xx` 标签
+2. **分类** → 添加 `type:bug` / `type:feature` / `type:question` / `type:documentation` 标签
+3. **发布**英文摘要作为第一条评论：
+
+```
+## 🌐 AI Translation
+
+**语言:** zh-CN
+
+**摘要:** Install fails on Ubuntu 24.04
+```
+
+> Webhook 请求通过 HMAC SHA-256（`X-Hub-Signature-256`）校验；无效签名以 `401` 拒绝。
+> 配置位于 `.globalizer.yaml` 的 `github.token` / `github.webhook_secret`，或环境变量 `GITHUB_TOKEN` / `GLOBALIZER_WEBHOOK_SECRET`。
+
 ---
 
 ## 架构
@@ -255,7 +291,7 @@ opensource-globalizer/
 |---------|----------|-------------|--------|
 | **v0.1.0** | 2026-07（第 1-2 周） | CLI README 翻译器 + HTTP API | ✅ 已发布 |
 | **v0.2.0** | 2026-07（第 3-4 周） | GitHub Action + 自动 PR + Docker 镜像 | ✅ 已发布 |
-| **v0.3.0** | 2026-08 | Issue 语言检测 + 翻译 + 标签 | 📋 规划中 |
+| **v0.3.0** | 2026-08 | Issue 语言检测 + 翻译 + 标签 | ✅ 已发布 |
 | **v0.4.0** | 2026-09 | 发布说明多语言生成 | 📋 规划中 |
 | **v1.0.0** | 2026-10 | GitHub App + 仪表盘 + 多 AI 提供商 | 📋 规划中 |
 

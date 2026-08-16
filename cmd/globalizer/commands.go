@@ -7,7 +7,7 @@ import (
 )
 
 // version 可在构建时通过 -ldflags "-X main.version=vX.Y.Z" 覆盖
-var version = "0.2.0"
+var version = "0.3.0"
 
 var versionCmd = &cobra.Command{
 	Use:   "version",
