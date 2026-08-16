@@ -38,7 +38,7 @@ But most maintainers cannot manually translate every README, every Issue, every 
 | 📖 **README Translator** | v0.1 | ✅ Released | Translate README.md to multiple languages, goldmark AST preserves all formatting |
 | 🌐 **HTTP API** | v0.1 | ✅ Released | REST API via Gin, POST /api/v1/translate |
 | 🔄 **GitHub Action** | v0.2 | ✅ Released | Auto-translate on push, create PR automatically |
-| 🏷️ **Issue Assistant** | v0.3 | 📋 Planned | Detect issue language, auto-classify, translate |
+| 🏷️ **Issue Assistant** | v0.3 | ✅ Released | Detect issue language, auto-classify, auto-reply + label |
 | 📦 **Release Assistant** | v0.4 | 📋 Planned | Generate multi-language release notes |
 | 🤖 **GitHub App** | v1.0 | 📋 Planned | Full bot integration with PR comments and review |
 
@@ -162,6 +162,42 @@ Translated files are written to the repo root as `README.<lang>.md` (e.g. `READM
 > No API key for testing? Leave `api-key` empty and add `mock: true` to verify the flow end-to-end.
 > Example workflow lives at [.github/workflows/i18n.yml](.github/workflows/i18n.yml).
 
+### Issue Assistant: auto-detect, classify, reply & label (v0.3)
+
+`serve` mode exposes a GitHub webhook endpoint that auto-processes Issues end-to-end:
+
+```bash
+export GITHUB_TOKEN="ghp_xxx"                 # GitHub PAT with issues:write scope
+export GLOBALIZER_WEBHOOK_SECRET="secret"     # webhook HMAC SHA-256 secret
+globalizer serve                              # → POST /webhook is registered
+```
+
+**Setup:**
+
+1. Add a webhook: repo **Settings → Webhooks → Add webhook**
+   - **Payload URL**: `https://your-server/webhook`
+   - **Content type**: `application/json`
+   - **Secret**: same value as `GLOBALIZER_WEBHOOK_SECRET`
+   - **Events**: **Issues** (`opened`, `edited`)
+2. Set `GITHUB_TOKEN` (repo **Settings → Secrets and variables → Actions**, or the server env) with `issues:write` scope
+
+When a non-English Issue is opened, the assistant automatically:
+
+1. **Detects** the language → adds a `lang:xx` label
+2. **Classifies** it → adds a `type:bug` / `type:feature` / `type:question` / `type:documentation` label
+3. **Posts** an English summary as the first comment:
+
+```
+## 🌐 AI Translation
+
+**语言:** zh-CN
+
+**摘要:** Install fails on Ubuntu 24.04
+```
+
+> Webhook requests are verified with HMAC SHA-256 (`X-Hub-Signature-256`); invalid signatures are rejected with `401`.
+> Config lives under `github.token` / `github.webhook_secret` in `.globalizer.yaml`, or the `GITHUB_TOKEN` / `GLOBALIZER_WEBHOOK_SECRET` env vars.
+
 ---
 
 ## Architecture
@@ -250,7 +286,7 @@ opensource-globalizer/
 |---------|----------|-------------|--------|
 | **v0.1.0** | 2026-07 (Week 1-2) | CLI README Translator + HTTP API | ✅ Released |
 | **v0.2.0** | 2026-07 (Week 3-4) | GitHub Action + Auto PR + Docker Image | ✅ Released |
-| **v0.3.0** | 2026-08 | Issue Language Detect + Translate + Label | 📋 Planned |
+| **v0.3.0** | 2026-08 | Issue Language Detect + Classify + Auto-Reply + Label | ✅ Released |
 | **v0.4.0** | 2026-09 | Release Notes Multi-language Generation | 📋 Planned |
 | **v1.0.0** | 2026-10 | GitHub App + Dashboard + Multi-AI-Provider | 📋 Planned |
 

@@ -26,7 +26,7 @@ sudo mv globalizer /usr/local/bin/
 
 # 4. 验证
 globalizer version
-# → globalizer v0.1.0
+# → globalizer v0.3.0
 ```
 
 **全平台二进制：**
@@ -36,6 +36,7 @@ globalizer version
 | **macOS (Intel)** | `globalizer-darwin-amd64` |
 | **macOS (Apple M1/M2/M3)** | `globalizer-darwin-arm64` |
 | **Linux (x86_64)** | `globalizer-linux-amd64` |
+| **Linux (ARM64)** | `globalizer-linux-arm64` |
 | **Windows (x86_64)** | `globalizer-windows-amd64.exe` |
 
 ```bash
@@ -45,7 +46,7 @@ chmod +x globalizer
 
 # 验证
 ./globalizer version
-# → globalizer v0.1.0
+# → globalizer v0.3.0
 ```
 
 ### 方式二：Docker 运行（无需 Go 环境）
@@ -265,6 +266,68 @@ jobs:
 ```
 
 完成后：每次修改 README.md 并推送，GitHub Action 自动翻译并创建 Pull Request。
+
+---
+
+## 第七步（可选）：配置 Issue Assistant Webhook
+
+Issue Assistant 在 `serve` 模式下暴露 `POST /webhook` 端点，自动检测 Issue 语言、分类、回复英文摘要并添加标签。
+
+### 1. 配置环境变量
+
+需同时配置两个变量，否则 `serve` 不注册 `/webhook` 端点：
+
+```bash
+export GITHUB_TOKEN="ghp_xxx"                 # 具有 issues:write 权限的 GitHub PAT
+export GLOBALIZER_WEBHOOK_SECRET="my-secret"  # webhook HMAC SHA-256 密钥
+```
+
+> 也可写入 `.globalizer.yaml`：
+> ```yaml
+> github:
+>   token: ghp_xxx
+>   webhook_secret: my-secret
+> ```
+
+### 2. 启动服务
+
+```bash
+globalizer serve
+# → 日志输出: 已启用 Issue webhook 端点 path=/webhook
+```
+
+### 3. 配置 GitHub Webhook
+
+在目标仓库：**Settings → Webhooks → Add webhook**
+
+| 字段 | 值 |
+|------|-----|
+| **Payload URL** | `https://your-server/webhook` |
+| **Content type** | `application/json` |
+| **Secret** | 与 `GLOBALIZER_WEBHOOK_SECRET` 相同的值 |
+| **Events** | **Issues**（`opened`、`edited`） |
+
+### 4. 验证
+
+在仓库中创建一个非英语 Issue（例如中文标题 + 正文），助手会自动：
+
+1. 添加 `lang:zh-CN` 标签
+2. 添加 `type:bug` / `type:feature` / `type:question` / `type:documentation` 标签
+3. 发布第一条英文摘要评论：
+
+```
+## 🌐 AI Translation
+
+**语言:** zh-CN
+
+**摘要:** Install fails on Ubuntu 24.04
+```
+
+### 安全说明
+
+- 每个请求通过 HMAC SHA-256 签名校验（`X-Hub-Signature-256`），签名不匹配返回 `401`
+- 仅处理 `opened` / `edited` 事件，自动跳过 PR（GitHub 中 PR 也以 Issue 事件形式发送）
+- 建议将服务部署在 HTTPS 之后，并使用受限权限（仅 `issues:write`）的 PAT
 
 ---
 

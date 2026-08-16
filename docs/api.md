@@ -17,6 +17,7 @@
 | `POST` | `/api/v1/translate` | 翻译 Markdown 内容 | v0.1 | 🚧 |
 | `GET` | `/api/v1/languages` | 支持的语言列表 | v0.1 | ✅ |
 | `GET` | `/health` | 健康检查 | v0.1 | ✅ |
+| `POST` | `/webhook` | GitHub Issue webhook (检测 + 分类 + 评论 + 标签) | v0.3 | ✅ |
 
 ### 启动方式
 
@@ -176,10 +177,65 @@ globalizer serve
 
 ---
 
-## 4. V2/V3 计划接口 (暂未实现)
+## 4. v0.3 API — Issue Assistant
+
+### 4.1 POST /webhook
+
+GitHub Issue webhook 端点。接收 GitHub 推送的 `issues` 事件，自动完成语言检测、分类、评论回复和标签添加。
+
+**启用条件**: 需同时配置 `GITHUB_TOKEN` 与 `GLOBALIZER_WEBHOOK_SECRET`，否则 `serve` 不注册此端点。
+
+**Request Header:**
+
+| Header | 说明 |
+|--------|------|
+| `X-Hub-Signature-256` | HMAC SHA-256 签名，格式 `sha256=<hex>` |
+| `Content-Type` | `application/json` |
+
+**Request Body** (GitHub `issues.opened` / `issues.edited` 事件):
+
+```json
+{
+  "action": "opened",
+  "issue": {
+    "number": 42,
+    "title": "安装失败 Ubuntu 24",
+    "body": "在 Ubuntu 24.04 上 make install 崩溃"
+  },
+  "repository": {
+    "name": "demo",
+    "full_name": "ytc301/demo",
+    "owner": {"login": "ytc301"}
+  }
+}
+```
+
+**处理流程:**
+
+1. 校验 `X-Hub-Signature-256` 签名（无效 → `401`）
+2. 解析事件，仅处理 `opened` / `edited` 且非 PR 的事件（其余静默跳过）
+3. AI 检测语言 + 分类 + 生成英文摘要
+4. 发布翻译评论（固定格式 `## 🌐 AI Translation`）
+5. 添加 `lang:xx` 与 `type:xx` 标签
+
+**Response (200):**
+
+```json
+{ "success": true }
+```
+
+**错误响应:**
+
+| 状态码 | 场景 |
+|--------|------|
+| `400` | 请求体读取失败 / 事件 JSON 解析失败 |
+| `401` | 签名缺失 / secret 未配置 / 签名不匹配 |
+| `500` | AI 分类失败 / GitHub API 调用失败 |
+
+---
+
+## 5. V3 计划接口 (暂未实现)
 
 | Method | Path | 描述 | 计划版本 |
 |--------|------|------|---------|
-| `POST` | `/api/v1/issues/analyze` | Issue 分析 + 分类 | v0.3 |
-| `POST` | `/api/v1/issues/translate` | Issue 翻译 | v0.3 |
 | `POST` | `/api/v1/releases/generate` | Release Notes 生成 | v0.4 |

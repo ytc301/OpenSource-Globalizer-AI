@@ -10,7 +10,7 @@
 |------|------|------|---------|------|
 | **v0.1.0** | 2026-07 Week 1-2 | 🏗️ MVP CLI | CLI + HTTP API — README 翻译 | ✅ |
 | **v0.2.0** | 2026-07 Week 3-4 | 🔄 Action | GitHub Action + Docker + 自动 PR | ✅ |
-| **v0.3.0** | 2026-08 | 🏷️ Issue AI | Issue 语言检测 + 翻译 + 分类 | 📋 |
+| **v0.3.0** | 2026-08 | 🏷️ Issue AI | Issue 语言检测 + 翻译 + 分类 | ✅ |
 | **v0.4.0** | 2026-09 | 📦 Release AI | Release Notes 多语言生成 | 📋 |
 | **v1.0.0** | 2026-10 | 🤖 GitHub App | 完整 GitHub App + 多 AI Provider | 📋 |
 
@@ -73,20 +73,30 @@
 
 ---
 
-## v0.3.0 — Issue Assistant
+## v0.3.0 — Issue Assistant ✅
 
 > **目标**: Issue 被自动检测语言 → 翻译为英文 → 添加分类标签。
 
-**时间**: 2026-08-10 → 2026-08-31 (3 周)
+**时间**: 2026-08-10 → 2026-08-31 (3 周) ✅ 完成于 2026-08-16
 
-| # | 任务 | 优先级 |
-|---|------|--------|
-| 1 | Issue Webhook 处理 | P0 |
-| 2 | AI 语言检测 + 翻译服务 | P0 |
-| 3 | AI Issue 自动分类 (bug/feature/question/doc) | P0 |
-| 4 | 翻译结果作为 Issue Comment 自动回复 | P0 |
-| 5 | 自动标签 (lang:xx / type:xx) | P0 |
-| 6 | 集成测试 | P1 |
+| # | 任务 | 优先级 | 状态 |
+|---|------|--------|------|
+| 1 | Issue Webhook 处理 (HMAC SHA-256 签名校验) | P0 | ✅ |
+| 2 | AI 语言检测 + 翻译服务 | P0 | ✅ |
+| 3 | AI Issue 自动分类 (bug/feature/question/doc) | P0 | ✅ |
+| 4 | 翻译结果作为 Issue Comment 自动回复 | P0 | ✅ |
+| 5 | 自动标签 (lang:xx / type:xx) | P0 | ✅ |
+| 6 | 集成测试 | P1 | ✅ |
+
+### v0.3.0 交付物
+
+- Webhook 端点: `POST /webhook` (HMAC SHA-256 签名校验, `X-Hub-Signature-256`)
+- Issue 事件解析: `issues.opened` / `issues.edited` (自动跳过 PR)
+- AI 能力: `DetectLanguage` + `ClassifyIssue` (语言 / 类型 / 英文摘要 / 置信度)
+- 自动评论: 固定格式 `## 🌐 AI Translation` 英文摘要回复
+- 自动标签: `lang:xx` + `type:xx`
+- GitHub 客户端: go-github v69 真实 API (CreatePR / GetFile / CreateIssueComment / AddIssueLabels)
+- 单元测试: webhook 16 / comment 7 / handler webhook 6 / client 5 / translator +6 / config +2
 
 ---
 
