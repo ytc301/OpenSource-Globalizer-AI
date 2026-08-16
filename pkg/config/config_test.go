@@ -199,3 +199,36 @@ func TestLoad_GitHubConfigEnv(t *testing.T) {
 		t.Errorf("GLOBALIZER_WEBHOOK_SECRET 应生效, 实际 %q", cfg.GitHub.WebhookSecret)
 	}
 }
+
+func TestLoad_IssueModelYAML(t *testing.T) {
+	tmpDir := t.TempDir()
+	cfgPath := filepath.Join(tmpDir, "issue.yaml")
+	yaml := `
+openai:
+  base_url: https://api.deepseek.com/v1
+  issue_model: deepseek-v4-flash
+`
+	if err := os.WriteFile(cfgPath, []byte(yaml), 0644); err != nil {
+		t.Fatalf("写入测试配置: %v", err)
+	}
+
+	cfg, err := Load(cfgPath)
+	if err != nil {
+		t.Fatalf("加载配置失败: %v", err)
+	}
+	if cfg.OpenAI.IssueModel != "deepseek-v4-flash" {
+		t.Errorf("IssueModel 错误: %q", cfg.OpenAI.IssueModel)
+	}
+}
+
+func TestLoad_IssueModelEnv(t *testing.T) {
+	t.Setenv("OPENAI_ISSUE_MODEL", "deepseek-v4-flash")
+
+	cfg, err := Load(t.TempDir() + "/nonexistent.yaml")
+	if err != nil {
+		t.Fatalf("加载失败: %v", err)
+	}
+	if cfg.OpenAI.IssueModel != "deepseek-v4-flash" {
+		t.Errorf("OPENAI_ISSUE_MODEL 应生效, 实际 %q", cfg.OpenAI.IssueModel)
+	}
+}
