@@ -286,21 +286,21 @@ export GLOBALIZER_WEBHOOK_SECRET="my-secret"  # webhook HMAC SHA-256 密钥
 
 ```bash
 export OPENAI_API_KEY="sk-xxx"                    # AI API Key
-export OPENAI_BASE_URL="https://api.openai.com/v1" # 默认 OpenAI；DeepSeek 用 https://api.deepseek.com/v1
-export OPENAI_ISSUE_MODEL="gpt-4o-mini"           # Issue 检测/分类模型；DeepSeek 用 deepseek-v4-flash
+export OPENAI_BASE_URL="https://api.openai.com/v1" # OpenAI API 端点
+export OPENAI_ISSUE_MODEL="gpt-4o-mini"           # Issue 检测/分类模型
 ```
 
 > 也可写入 `.globalizer.yaml`：
 > ```yaml
 > openai:
->   base_url: https://api.deepseek.com/v1
->   issue_model: deepseek-v4-flash
+>   base_url: https://api.openai.com/v1
+>   issue_model: gpt-4o-mini
 > github:
 >   token: ghp_xxx
 >   webhook_secret: my-secret
 > ```
 >
-> ⚠️ 使用 DeepSeek 等 OpenAI 兼容端点时，**必须**通过 `OPENAI_ISSUE_MODEL`（或 `issue_model`）指定模型名，否则默认 `gpt-4o-mini` 会报 `model_not_found`。
+> ⚠️ 使用 OpenAI 兼容端点时，**必须**通过 `OPENAI_ISSUE_MODEL`（或 `issue_model`）指定该端点支持的模型名，否则默认 `gpt-4o-mini` 会报 `model_not_found`。
 
 ### 2. 启动服务
 

@@ -161,7 +161,7 @@ jobs:
 2. 启用 PR 创建：仓库 **Settings → Actions → General → Workflow permissions** → 勾选 *Allow GitHub Actions to create and approve pull requests*
 3. 推送 `README.md` → Action 自动翻译 → 创建 PR（标题 `🌍 i18n: Auto-translate README to ...`）
 
-> 通过 `base-url` 和 `model` 输入支持兼容 OpenAI 的端点（例如 DeepSeek）。
+> 通过 `base-url` 和 `model` 输入支持兼容 OpenAI 的端点。
 > 没有 API 密钥用于测试？将 `api-key` 留空并添加 `mock: true` 即可端到端验证流程。
 > 示例工作流位于 [.github/workflows/i18n.yml](.github/workflows/i18n.yml)。
 
@@ -200,7 +200,7 @@ globalizer serve                              # → 注册 POST /webhook
 
 > Webhook 请求通过 HMAC SHA-256（`X-Hub-Signature-256`）校验；无效签名以 `401` 拒绝。
 > 配置位于 `.globalizer.yaml` 的 `github.token` / `github.webhook_secret`，或环境变量 `GITHUB_TOKEN` / `GLOBALIZER_WEBHOOK_SECRET`。
-> 检测/分类模型默认 `gpt-4o-mini`；DeepSeek 等端点需设置 `OPENAI_ISSUE_MODEL`（如 `deepseek-v4-flash`）覆盖。
+> 检测/分类模型默认 `gpt-4o-mini`；兼容端点需设置 `OPENAI_ISSUE_MODEL` 覆盖。
 
 ---
 

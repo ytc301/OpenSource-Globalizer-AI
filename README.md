@@ -158,7 +158,7 @@ Translated files are written to the repo root as `README.<lang>.md` (e.g. `READM
 2. Enable PR creation: repo **Settings → Actions → General → Workflow permissions** → check *Allow GitHub Actions to create and approve pull requests*
 3. Push `README.md` → the Action auto-translates → a PR is created (title `🌍 i18n: Auto-translate README to ...`)
 
-> Supports OpenAI-compatible endpoints (e.g. DeepSeek) via the `base-url` and `model` inputs.
+> Supports OpenAI-compatible endpoints via the `base-url` and `model` inputs.
 > No API key for testing? Leave `api-key` empty and add `mock: true` to verify the flow end-to-end.
 > Example workflow lives at [.github/workflows/i18n.yml](.github/workflows/i18n.yml).
 
@@ -197,7 +197,7 @@ When a non-English Issue is opened, the assistant automatically:
 
 > Webhook requests are verified with HMAC SHA-256 (`X-Hub-Signature-256`); invalid signatures are rejected with `401`.
 > Config lives under `github.token` / `github.webhook_secret` in `.globalizer.yaml`, or the `GITHUB_TOKEN` / `GLOBALIZER_WEBHOOK_SECRET` env vars.
-> The detection/classification model defaults to `gpt-4o-mini`; set `OPENAI_ISSUE_MODEL` (e.g. `deepseek-v4-flash` for DeepSeek) to override it.
+> The detection/classification model defaults to `gpt-4o-mini`; set `OPENAI_ISSUE_MODEL` to override it.
 
 ---
 

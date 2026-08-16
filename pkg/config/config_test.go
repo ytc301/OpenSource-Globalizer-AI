@@ -205,8 +205,8 @@ func TestLoad_IssueModelYAML(t *testing.T) {
 	cfgPath := filepath.Join(tmpDir, "issue.yaml")
 	yaml := `
 openai:
-  base_url: https://api.deepseek.com/v1
-  issue_model: deepseek-v4-flash
+  base_url: https://api.example.com/v1
+  issue_model: gpt-4o
 `
 	if err := os.WriteFile(cfgPath, []byte(yaml), 0644); err != nil {
 		t.Fatalf("写入测试配置: %v", err)
@@ -216,19 +216,19 @@ openai:
 	if err != nil {
 		t.Fatalf("加载配置失败: %v", err)
 	}
-	if cfg.OpenAI.IssueModel != "deepseek-v4-flash" {
+	if cfg.OpenAI.IssueModel != "gpt-4o" {
 		t.Errorf("IssueModel 错误: %q", cfg.OpenAI.IssueModel)
 	}
 }
 
 func TestLoad_IssueModelEnv(t *testing.T) {
-	t.Setenv("OPENAI_ISSUE_MODEL", "deepseek-v4-flash")
+	t.Setenv("OPENAI_ISSUE_MODEL", "gpt-4o")
 
 	cfg, err := Load(t.TempDir() + "/nonexistent.yaml")
 	if err != nil {
 		t.Fatalf("加载失败: %v", err)
 	}
-	if cfg.OpenAI.IssueModel != "deepseek-v4-flash" {
+	if cfg.OpenAI.IssueModel != "gpt-4o" {
 		t.Errorf("OPENAI_ISSUE_MODEL 应生效, 实际 %q", cfg.OpenAI.IssueModel)
 	}
 }

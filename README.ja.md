@@ -162,7 +162,7 @@ jobs:
 2. PR作成を有効化：リポジトリの**Settings → Actions → General → Workflow permissions** → *Allow GitHub Actions to create and approve pull requests*にチェック
 3. `README.md`をpush → Actionが自動翻訳 → PRが作成されます（タイトル `🌍 i18n: Auto-translate README to ...`）
 
-> `base-url`と`model`入力を介してOpenAI互換エンドポイント（例：DeepSeek）をサポートします。
+> `base-url`と`model`入力を介してOpenAI互換エンドポイントをサポートします。
 > テスト用のAPIキーがない場合？ `api-key`を空のままにして`mock: true`を追加すると、フローをエンドツーエンドで検証できます。
 > サンプルワークフローは[.github/workflows/i18n.yml](.github/workflows/i18n.yml)にあります。
 
@@ -201,7 +201,7 @@ globalizer serve                              # → POST /webhook が登録さ�
 
 > WebhookリクエストはHMAC SHA-256（`X-Hub-Signature-256`）で検証され、無効な署名は`401`で拒否されます。
 > 設定は`.globalizer.yaml`の`github.token` / `github.webhook_secret`、または環境変数`GITHUB_TOKEN` / `GLOBALIZER_WEBHOOK_SECRET`にあります。
-> 検出/分類モデルはデフォルト`gpt-4o-mini`です。DeepSeekなどのエンドポイントでは`OPENAI_ISSUE_MODEL`（例：`deepseek-v4-flash`）で上書きしてください。
+> 検出/分類モデルはデフォルト`gpt-4o-mini`です。必要に応じて`OPENAI_ISSUE_MODEL`で上書きしてください。
 
 ---
 
