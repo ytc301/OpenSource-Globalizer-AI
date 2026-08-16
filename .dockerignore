@@ -1,0 +1,30 @@
+# 构建产物
+bin/
+dist/
+coverage.out
+coverage.html
+
+# VCS
+.git/
+.gitignore
+
+# 本地数据库
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+
+# 翻译输出
+docs/README.*.md
+
+# 配置与密钥
+.env
+.env.local
+.env.*.local
+.globalizer.yaml
+
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store
+*.log
