@@ -15,12 +15,16 @@ import (
 type OpenAIConfig struct {
 	APIKey      string
 	BaseURL     string        // 默认: https://api.openai.com/v1
+	Model       string        // 语言检测/分类模型, 默认: gpt-4o-mini
 	HTTPTimeout time.Duration // 默认: 60s
 	MaxRetries  int           // 默认: 3
 }
 
 // DefaultMaxRetries 默认重试次数。
 const DefaultMaxRetries = 3
+
+// DefaultIssueModel 语言检测 / Issue 分类使用的默认模型。
+const DefaultIssueModel = "gpt-4o-mini"
 
 // OpenAIProvider 实现 Provider 接口，使用 OpenAI API。
 type OpenAIProvider struct {
@@ -38,6 +42,9 @@ func NewOpenAI(cfg OpenAIConfig) *OpenAIProvider {
 	}
 	if cfg.MaxRetries <= 0 {
 		cfg.MaxRetries = DefaultMaxRetries
+	}
+	if cfg.Model == "" {
+		cfg.Model = DefaultIssueModel
 	}
 	return &OpenAIProvider{
 		config: cfg,
@@ -97,7 +104,7 @@ func (p *OpenAIProvider) DetectLanguage(ctx context.Context, text string) (strin
 	}
 
 	req := chatCompletionRequest{
-		Model: "gpt-4o-mini",
+		Model: p.config.Model,
 		Messages: []chatMessage{
 			{Role: "system", Content: "You are a language detector. Respond with ONLY the ISO 639-1 language code (e.g., 'en', 'zh', 'ja', 'ko'). No other text."},
 			{Role: "user", Content: fmt.Sprintf("Detect the language of this text:\n\n%s", sample)},
@@ -114,7 +121,7 @@ func (p *OpenAIProvider) DetectLanguage(ctx context.Context, text string) (strin
 // ClassifyIssue 实现 Provider 接口的 Issue 分类方法。
 func (p *OpenAIProvider) ClassifyIssue(ctx context.Context, title, body string) (*IssueClassifyResult, error) {
 	req := chatCompletionRequest{
-		Model: "gpt-4o-mini",
+		Model: p.config.Model,
 		Messages: []chatMessage{
 			{Role: "system", Content: issueClassifySystemPrompt},
 			{Role: "user", Content: fmt.Sprintf("Title: %s\n\nBody:\n%s", title, body)},
